@@ -5,7 +5,7 @@ async function run(): Promise<void> {
   try {
     const required = {required: true}
     const github_token = core.getInput('github_token', required)
-    const tag_name = core.getInput('tag_name', required)
+    let tag_name = core.getInput('tag_name')
     const release_name = core.getInput('release_name')
     const body = core.getInput('body')
     const body_path = core.getInput('body_path')
@@ -14,6 +14,13 @@ async function run(): Promise<void> {
     const commitish = core.getInput('commitish')
     const owner = core.getInput('owner')
     const repo = core.getInput('repo')
+    if (tag_name === '') {
+      const ref = process.env['GITHUB_REF'] || ''
+      if (!ref.startsWith('refs/tags/')) {
+        throw new Error(`${ref} is not a tag`)
+      }
+      tag_name = ref.substring('refs/tags/'.length)
+    }
     const result = await release.create({
       github_token,
       tag_name,
