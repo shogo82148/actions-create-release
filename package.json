@@ -1,9 +1,9 @@
 {
-  "name": "typescript-action",
+  "name": "actions-create-release",
   "version": "0.0.0",
   "private": true,
-  "description": "TypeScript template action",
-  "main": "lib/main.js",
+  "description": "Create a release for a tag in your repository",
+  "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
     "format": "prettier --write **/*.ts",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/shogo82148/actions-create-release.git"
   },
   "keywords": [
     "actions",
