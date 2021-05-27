@@ -66,7 +66,7 @@ jobs:
       - name: cleanup
         run: |
           curl -XDELETE -H "Accept: application/vnd.github.v3+json" -H "Authorization: token $GITHUB_TOKEN" \
-            "$GITHUB_API/repos/${{ github.repository }}/releases/${{ needs.integrated.outputs.id }}"
+            "$GITHUB_API_URL/repos/${{ github.repository }}/releases/${{ needs.integrated.outputs.id }}"
         if: always()
         env:
           GITHUB_TOKEN: ${{ github.token }}
