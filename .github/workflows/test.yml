@@ -67,6 +67,8 @@ jobs:
         run: |
           curl -XDELETE -H "Accept: application/vnd.github.v3+json" -H "Authorization: token $GITHUB_TOKEN" \
             "$GITHUB_API_URL/repos/${{ github.repository }}/releases/${{ needs.integrated.outputs.id }}"
+          curl -XDELETE -H "Accept: application/vnd.github.v3+json" -H "Authorization: token $GITHUB_TOKEN" \
+            "$GITHUB_API_URL/repos/${{ github.repository }}/git/refs/tags/test-${{ github.run_id }}"
         if: always()
         env:
           GITHUB_TOKEN: ${{ github.token }}
