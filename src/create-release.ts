@@ -52,7 +52,7 @@ export async function create(opt: Options): Promise<Result> {
   const resp = await creator({
     github_token: opt.github_token,
     owner: owner,
-    repo: repo,
+    repo,
     tag_name: opt.tag_name,
     target_commitish,
     name,
