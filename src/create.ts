@@ -20,15 +20,22 @@ async function run(): Promise<void> {
       release_name,
       body,
       body_path,
-      draft,
       prerelease,
       commitish,
       owner,
-      repo
+      repo,
+
+      // Always create release as draft first.
+      // It is to prevent users from seeing empty release.
+      draft: true
     })
     core.setOutput('id', result.id)
     core.setOutput('html_url', result.html_url)
     core.setOutput('upload_url', result.upload_url)
+
+    if (!draft) {
+      core.saveState('id', result.id)
+    }
   } catch (error) {
     core.setFailed(error.message)
   }
