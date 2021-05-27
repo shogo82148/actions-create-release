@@ -117,7 +117,7 @@ const createRelease = async (
     target_commitish: params.target_commitish,
     name: params.name,
     body: params.body,
-    draft: params.body,
+    draft: params.draft,
     prerelease: params.prerelease
   })
   const api = process.env['GITHUB_API_URL'] || 'https://api.github.com'
