@@ -11,9 +11,11 @@ inputs:
   body:
     description: "Text describing the contents of the tag."
     required: false
+    default: ""
   body_path:
     description: "Path to file with information about the tag."
     required: false
+    default: ""
   draft:
     description: "`true` to create a draft (unpublished) release, `false` to create a published one. Default: `false`"
     required: false

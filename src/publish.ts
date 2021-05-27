@@ -1,9 +1,9 @@
 import * as core from '@actions/core'
-import * as release from './create-release'
+import * as release from './publish-release'
 
 async function run(): Promise<void> {
   try {
-    await release.create({})
+    await release.publish({})
   } catch (error) {
     core.setFailed(error.message)
   }
