@@ -56,7 +56,7 @@ export async function create(opt: Options): Promise<Result> {
     tag_name: opt.tag_name,
     target_commitish: target_commitish,
     name: name,
-    body: body,
+    body,
     draft: opt.draft,
     prerelease: opt.prerelease
   })
