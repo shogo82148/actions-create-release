@@ -54,7 +54,7 @@ export async function create(opt: Options): Promise<Result> {
     owner: owner,
     repo: repo,
     tag_name: opt.tag_name,
-    target_commitish: target_commitish,
+    target_commitish,
     name,
     body,
     draft: opt.draft,
