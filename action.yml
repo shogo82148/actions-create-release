@@ -2,12 +2,16 @@ name: "Yet Another Create Release Action"
 description: "Create a release for a tag in your repository"
 author: "Ichinose Shogo"
 inputs:
+  github_token:
+    description: "The API token for GitHub"
+    required: true
+    default: "${{ github.token }}"
   tag_name:
     description: "The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag"
     required: true
   release_name:
     description: "The name of the release. For example, `Release v1.0.1`"
-    required: true
+    required: false
   body:
     description: "Text describing the contents of the tag."
     required: false
