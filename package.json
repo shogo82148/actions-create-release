@@ -1,6 +1,6 @@
 {
   "name": "actions-create-release",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Create a release for a tag in your repository",
   "main": "lib/index.js",
