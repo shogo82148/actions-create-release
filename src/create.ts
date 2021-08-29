@@ -44,7 +44,11 @@ async function run(): Promise<void> {
       core.saveState('id', result.id)
     }
   } catch (error) {
-    core.setFailed(error.message)
+    if (error instanceof Error) {
+      core.setFailed(error)
+    } else {
+      core.setFailed(`${error}`)
+    }
   }
 }
 
