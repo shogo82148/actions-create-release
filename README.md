@@ -61,6 +61,12 @@ The name of the owner of the repo. Used to identify the owner of the repository.
 
 The name of the repository. Used to identify the repository on which to release. Used when cutting releases for external repositories. Default: Current repository
 
+### discussion_category_name
+
+If specified, a discussion of the specified category is created and linked to the release.
+The value must be a category that already exists in the repository.
+For more information, see "[Managing categories for discussions in your repository.](https://docs.github.com/en/discussions/managing-discussions-for-your-community/managing-categories-for-discussions-in-your-repository)"
+
 ## Outputs
 
 ### id
