@@ -13,7 +13,6 @@ interface Options {
   commitish: string
   owner: string
   repo: string
-  discussion_category_name: string
 
   createRelease?: (
     params: ReposCreateReleaseParams
@@ -35,7 +34,6 @@ export async function create(opt: Options): Promise<Result> {
   let name: string | undefined
   let body: string | undefined
   let target_commitish: string | undefined
-  let discussion_category_name: string | undefined
 
   if (opt.release_name !== '') {
     name = opt.release_name
@@ -49,9 +47,6 @@ export async function create(opt: Options): Promise<Result> {
   if (opt.commitish !== '') {
     target_commitish = opt.commitish
   }
-  if (opt.discussion_category_name !== '') {
-    discussion_category_name = opt.commitish
-  }
 
   const creator = opt.createRelease || createRelease
   const resp = await creator({
@@ -63,8 +58,7 @@ export async function create(opt: Options): Promise<Result> {
     name,
     body,
     draft: opt.draft,
-    prerelease: opt.prerelease,
-    discussion_category_name
+    prerelease: opt.prerelease
   })
   return {
     id: `${resp.id}`,
@@ -104,7 +98,6 @@ interface ReposCreateReleaseParams {
   body?: string
   draft?: boolean
   prerelease?: boolean
-  discussion_category_name?: string
 }
 
 interface ReposCreateReleaseResponse {
@@ -125,8 +118,7 @@ const createRelease = async (
     name: params.name,
     body: params.body,
     draft: params.draft,
-    prerelease: params.prerelease,
-    discussion_category_name: params.discussion_category_name
+    prerelease: params.prerelease
   })
   const api = process.env['GITHUB_API_URL'] || 'https://api.github.com'
   const url = `${api}/repos/${params.owner}/${params.repo}/releases`
