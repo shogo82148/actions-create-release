@@ -12,6 +12,7 @@ test('Create a new release', async () => {
     github_token: 'very-secret',
     owner: 'shogo82148',
     repo: 'github-action-test',
+    discussion_category_name: 'Test discussion',
     updateRelease: updateRelease
   })
   expect(updateRelease).toBeCalledTimes(1)
@@ -20,6 +21,7 @@ test('Create a new release', async () => {
     github_token: 'very-secret',
     owner: 'shogo82148',
     repo: 'github-action-test',
-    draft: false
+    draft: false,
+    discussion_category_name: 'Test discussion'
   })
 })
