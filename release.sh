@@ -11,7 +11,7 @@ WORKING=$CURRENT/.working
 
 : clone
 ORIGIN=$(git remote get-url origin)
-chmod -R +w "$WORKING" &&  rm -rf "$WORKING"
+chmod -R +w "$WORKING" && rm -rf "$WORKING"
 git clone "$ORIGIN" "$WORKING"
 cd "$WORKING"
 

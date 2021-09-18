@@ -55,6 +55,7 @@ jobs:
           prerelease: true
           body: |
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          discussion_category_name: "CI: Integration testing"
 
   cleanup:
     if: always()

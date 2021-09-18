@@ -14,6 +14,7 @@ async function run(): Promise<void> {
     const commitish = core.getInput('commitish')
     const owner = core.getInput('owner')
     const repo = core.getInput('repo')
+    // const discussion_category_name = core.getInput('discussion_category_name')
     if (tag_name === '') {
       const ref = process.env['GITHUB_REF'] || ''
       if (!ref.startsWith('refs/tags/')) {
@@ -34,7 +35,11 @@ async function run(): Promise<void> {
 
       // Always create release as draft first.
       // It is to prevent users from seeing empty release.
-      draft: true
+      draft: true,
+
+      // discussion_category_name is no effect with a draft release.
+      // so we skip to pass it here.
+      discussion_category_name: ''
     })
     core.setOutput('id', result.id)
     core.setOutput('html_url', result.html_url)
