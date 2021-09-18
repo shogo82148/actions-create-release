@@ -6,6 +6,7 @@ interface Options {
   owner: string
   repo: string
   id: string
+  discussion_category_name: string
 
   updateRelease?: (params: ReposUpdateReleaseParams) => Promise<void>
 }
@@ -15,13 +16,18 @@ export async function publish(opt: Options): Promise<void> {
   const repository = process.env['GITHUB_REPOSITORY']?.split('/') || ['', '']
   const owner = opt.owner || repository[0]
   const repo = opt.repo || repository[1]
+  const discussion_category_name =
+    opt.discussion_category_name !== ''
+      ? opt.discussion_category_name
+      : undefined
   const updater = opt.updateRelease || updateRelease
   await updater({
     github_token: opt.github_token,
     owner,
     repo,
     id: opt.id,
-    draft: false
+    draft: false,
+    discussion_category_name
   })
 }
 
@@ -40,6 +46,7 @@ interface ReposUpdateReleaseParams {
   repo: string
   id: string
   draft: boolean
+  discussion_category_name?: string | undefined
 }
 
 // minium implementation of create a release API
@@ -49,7 +56,8 @@ const updateRelease = async (
 ): Promise<void> => {
   const client = newGitHubClient(params.github_token)
   const body = JSON.stringify({
-    draft: params.draft
+    draft: params.draft,
+    discussion_category_name: params.discussion_category_name
   })
   const api = process.env['GITHUB_API_URL'] || 'https://api.github.com'
   const url = `${api}/repos/${params.owner}/${params.repo}/releases/${params.id}`

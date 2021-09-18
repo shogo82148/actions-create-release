@@ -36,7 +36,10 @@ inputs:
     description: "Owner of the repository if it is not the current one"
     required: false
   repo:
-    description: "Repository on which to release.  Used only if you want to create the release on another repo"
+    description: "Repository on which to release. Used only if you want to create the release on another repo"
+    required: false
+  discussion_category_name:
+    description: "If specified, a discussion of the specified category is created and linked to the release. The value must be a category that already exists in the repository."
     required: false
 outputs:
   id:

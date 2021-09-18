@@ -18,6 +18,7 @@ test('Create a new release', async () => {
     commitish: '',
     owner: 'shogo82148',
     repo: 'github-action-test',
+    discussion_category_name: '',
     createRelease: createRelease
   })
   expect(createRelease).toBeCalledTimes(1)

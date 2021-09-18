@@ -13,12 +13,14 @@ async function run(): Promise<void> {
     const github_token = core.getInput('github_token', required)
     const owner = core.getInput('owner')
     const repo = core.getInput('repo')
+    const discussion_category_name = core.getInput('discussion_category_name')
 
     await release.publish({
       github_token,
       owner,
       repo,
-      id
+      id,
+      discussion_category_name
     })
   } catch (error) {
     if (error instanceof Error) {
