@@ -511,9 +511,8 @@ exports.toCommandProperties = toCommandProperties;
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-var __webpack_unused_export__;
 
-__webpack_unused_export__ = ({ value: true });
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 const http = __nccwpck_require__(605);
 const https = __nccwpck_require__(211);
 const pm = __nccwpck_require__(443);
@@ -547,16 +546,16 @@ var HttpCodes;
     HttpCodes[HttpCodes["BadGateway"] = 502] = "BadGateway";
     HttpCodes[HttpCodes["ServiceUnavailable"] = 503] = "ServiceUnavailable";
     HttpCodes[HttpCodes["GatewayTimeout"] = 504] = "GatewayTimeout";
-})(HttpCodes = exports.o8 || (exports.o8 = {}));
+})(HttpCodes = exports.HttpCodes || (exports.HttpCodes = {}));
 var Headers;
 (function (Headers) {
     Headers["Accept"] = "accept";
     Headers["ContentType"] = "content-type";
-})(Headers = exports.PM || (exports.PM = {}));
+})(Headers = exports.Headers || (exports.Headers = {}));
 var MediaTypes;
 (function (MediaTypes) {
     MediaTypes["ApplicationJson"] = "application/json";
-})(MediaTypes = exports.Tr || (exports.Tr = {}));
+})(MediaTypes = exports.MediaTypes || (exports.MediaTypes = {}));
 /**
  * Returns the proxy URL, depending upon the supplied url and proxy environment variables.
  * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
@@ -565,7 +564,7 @@ function getProxyUrl(serverUrl) {
     let proxyUrl = pm.getProxyUrl(new URL(serverUrl));
     return proxyUrl ? proxyUrl.href : '';
 }
-__webpack_unused_export__ = getProxyUrl;
+exports.getProxyUrl = getProxyUrl;
 const HttpRedirectCodes = [
     HttpCodes.MovedPermanently,
     HttpCodes.ResourceMoved,
@@ -589,7 +588,7 @@ class HttpClientError extends Error {
         Object.setPrototypeOf(this, HttpClientError.prototype);
     }
 }
-__webpack_unused_export__ = HttpClientError;
+exports.HttpClientError = HttpClientError;
 class HttpClientResponse {
     constructor(message) {
         this.message = message;
@@ -606,12 +605,12 @@ class HttpClientResponse {
         });
     }
 }
-__webpack_unused_export__ = HttpClientResponse;
+exports.HttpClientResponse = HttpClientResponse;
 function isHttps(requestUrl) {
     let parsedUrl = new URL(requestUrl);
     return parsedUrl.protocol === 'https:';
 }
-__webpack_unused_export__ = isHttps;
+exports.isHttps = isHttps;
 class HttpClient {
     constructor(userAgent, handlers, requestOptions) {
         this._ignoreSslError = false;
@@ -1048,7 +1047,7 @@ class HttpClient {
         });
     }
 }
-exports.eN = HttpClient;
+exports.HttpClient = HttpClient;
 
 
 /***/ }),
@@ -1398,6 +1397,211 @@ exports.debug = debug; // for test
 
 /***/ }),
 
+/***/ 238:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.create = void 0;
+const fs = __importStar(__nccwpck_require__(747));
+const http = __importStar(__nccwpck_require__(925));
+// create creates a new release.
+async function create(opt) {
+    var _a;
+    const repository = ((_a = process.env['GITHUB_REPOSITORY']) === null || _a === void 0 ? void 0 : _a.split('/')) || ['', ''];
+    const owner = opt.owner || repository[0];
+    const repo = opt.repo || repository[1];
+    let name;
+    let body;
+    let target_commitish;
+    let discussion_category_name;
+    if (opt.release_name !== '') {
+        name = opt.release_name;
+    }
+    if (opt.body_path !== '') {
+        body = await readFile(opt.body_path);
+    }
+    if (!body && opt.body !== '') {
+        body = opt.body;
+    }
+    if (opt.commitish !== '') {
+        target_commitish = opt.commitish;
+    }
+    if (opt.discussion_category_name !== '') {
+        discussion_category_name = opt.discussion_category_name;
+    }
+    const creator = opt.createRelease || createRelease;
+    const resp = await creator({
+        github_token: opt.github_token,
+        owner,
+        repo,
+        tag_name: opt.tag_name,
+        target_commitish,
+        name,
+        body,
+        draft: opt.draft,
+        prerelease: opt.prerelease,
+        discussion_category_name
+    });
+    return {
+        id: `${resp.id}`,
+        html_url: resp.html_url,
+        upload_url: resp.upload_url
+    };
+}
+exports.create = create;
+// a wrapper for fs.readFile
+async function readFile(path) {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path, { encoding: 'utf8' }, (err, data) => {
+            if (err) {
+                reject(err);
+            }
+            resolve(data);
+        });
+    });
+}
+const newGitHubClient = (token) => {
+    return new http.HttpClient('shogo82148-actions-create-release/v1', [], {
+        headers: {
+            Authorization: `token ${token}`,
+            Accept: 'application/vnd.github.v3+json'
+        }
+    });
+};
+// minium implementation of create a release API
+// https://docs.github.com/en/rest/reference/repos#create-a-release
+const createRelease = async (params) => {
+    const client = newGitHubClient(params.github_token);
+    const body = JSON.stringify({
+        tag_name: params.tag_name,
+        target_commitish: params.target_commitish,
+        name: params.name,
+        body: params.body,
+        draft: params.draft,
+        prerelease: params.prerelease,
+        discussion_category_name: params.discussion_category_name
+    });
+    const api = process.env['GITHUB_API_URL'] || 'https://api.github.com';
+    const url = `${api}/repos/${params.owner}/${params.repo}/releases`;
+    const resp = await client.request('POST', url, body, {});
+    const statusCode = resp.message.statusCode;
+    const contents = await resp.readBody();
+    if (statusCode !== 201) {
+        throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
+    }
+    return JSON.parse(contents);
+};
+
+
+/***/ }),
+
+/***/ 118:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(186));
+const release = __importStar(__nccwpck_require__(238));
+async function run() {
+    try {
+        const required = { required: true };
+        const github_token = core.getInput('github_token', required);
+        let tag_name = core.getInput('tag_name');
+        const release_name = core.getInput('release_name');
+        const body = core.getInput('body');
+        const body_path = core.getInput('body_path');
+        const draft = core.getBooleanInput('draft');
+        const prerelease = core.getBooleanInput('prerelease');
+        const commitish = core.getInput('commitish');
+        const owner = core.getInput('owner');
+        const repo = core.getInput('repo');
+        // const discussion_category_name = core.getInput('discussion_category_name')
+        if (tag_name === '') {
+            const ref = process.env['GITHUB_REF'] || '';
+            if (!ref.startsWith('refs/tags/')) {
+                throw new Error(`${ref} is not a tag`);
+            }
+            tag_name = ref.substring('refs/tags/'.length);
+        }
+        const result = await release.create({
+            github_token,
+            tag_name,
+            release_name,
+            body,
+            body_path,
+            prerelease,
+            commitish,
+            owner,
+            repo,
+            // Always create release as draft first.
+            // It is to prevent users from seeing empty release.
+            draft: true,
+            // discussion_category_name is no effect with a draft release.
+            // so we skip to pass it here.
+            discussion_category_name: ''
+        });
+        core.setOutput('id', result.id);
+        core.setOutput('html_url', result.html_url);
+        core.setOutput('upload_url', result.upload_url);
+        if (!draft) {
+            core.saveState('id', result.id);
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.setFailed(error);
+        }
+        else {
+            core.setFailed(`${error}`);
+        }
+    }
+}
+run();
+
+
+/***/ }),
+
 /***/ 357:
 /***/ ((module) => {
 
@@ -1511,201 +1715,18 @@ module.exports = require("util");
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
-
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(186);
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(747);
-// EXTERNAL MODULE: ./node_modules/@actions/http-client/index.js
-var http_client = __nccwpck_require__(925);
-;// CONCATENATED MODULE: ./src/create-release.ts
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-
-// create creates a new release.
-function create(opt) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function* () {
-        const repository = ((_a = process.env['GITHUB_REPOSITORY']) === null || _a === void 0 ? void 0 : _a.split('/')) || ['', ''];
-        const owner = opt.owner || repository[0];
-        const repo = opt.repo || repository[1];
-        let name;
-        let body;
-        let target_commitish;
-        if (opt.release_name !== '') {
-            name = opt.release_name;
-        }
-        if (opt.body_path !== '') {
-            body = yield readFile(opt.body_path);
-        }
-        if (!body && opt.body !== '') {
-            body = opt.body;
-        }
-        if (opt.commitish !== '') {
-            target_commitish = opt.commitish;
-        }
-        const creator = opt.createRelease || createRelease;
-        const resp = yield creator({
-            github_token: opt.github_token,
-            owner,
-            repo,
-            tag_name: opt.tag_name,
-            target_commitish,
-            name,
-            body,
-            draft: opt.draft,
-            prerelease: opt.prerelease
-        });
-        return {
-            id: `${resp.id}`,
-            html_url: resp.html_url,
-            upload_url: resp.upload_url
-        };
-    });
-}
-// a wrapper for fs.readFile
-function readFile(path) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return new Promise((resolve, reject) => {
-            external_fs_.readFile(path, { encoding: 'utf8' }, (err, data) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve(data);
-            });
-        });
-    });
-}
-const newGitHubClient = (token) => {
-    return new http_client/* HttpClient */.eN('shogo82148-actions-create-release/v1', [], {
-        headers: {
-            Authorization: `token ${token}`,
-            Accept: 'application/vnd.github.v3+json'
-        }
-    });
-};
-// minium implementation of create a release API
-// https://docs.github.com/en/rest/reference/repos#create-a-release
-const createRelease = (params) => __awaiter(void 0, void 0, void 0, function* () {
-    const client = newGitHubClient(params.github_token);
-    const body = JSON.stringify({
-        tag_name: params.tag_name,
-        target_commitish: params.target_commitish,
-        name: params.name,
-        body: params.body,
-        draft: params.draft,
-        prerelease: params.prerelease
-    });
-    const api = process.env['GITHUB_API_URL'] || 'https://api.github.com';
-    const url = `${api}/repos/${params.owner}/${params.repo}/releases`;
-    const resp = yield client.request('POST', url, body, {});
-    const statusCode = resp.message.statusCode;
-    const contents = yield resp.readBody();
-    if (statusCode !== 201) {
-        throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
-    }
-    return JSON.parse(contents);
-});
-
-;// CONCATENATED MODULE: ./src/create.ts
-var create_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-
-function run() {
-    return create_awaiter(this, void 0, void 0, function* () {
-        try {
-            const required = { required: true };
-            const github_token = core.getInput('github_token', required);
-            let tag_name = core.getInput('tag_name');
-            const release_name = core.getInput('release_name');
-            const body = core.getInput('body');
-            const body_path = core.getInput('body_path');
-            const draft = core.getBooleanInput('draft');
-            const prerelease = core.getBooleanInput('prerelease');
-            const commitish = core.getInput('commitish');
-            const owner = core.getInput('owner');
-            const repo = core.getInput('repo');
-            if (tag_name === '') {
-                const ref = process.env['GITHUB_REF'] || '';
-                if (!ref.startsWith('refs/tags/')) {
-                    throw new Error(`${ref} is not a tag`);
-                }
-                tag_name = ref.substring('refs/tags/'.length);
-            }
-            const result = yield create({
-                github_token,
-                tag_name,
-                release_name,
-                body,
-                body_path,
-                prerelease,
-                commitish,
-                owner,
-                repo,
-                // Always create release as draft first.
-                // It is to prevent users from seeing empty release.
-                draft: true
-            });
-            core.setOutput('id', result.id);
-            core.setOutput('html_url', result.html_url);
-            core.setOutput('upload_url', result.upload_url);
-            if (!draft) {
-                core.saveState('id', result.id);
-            }
-        }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(error);
-            }
-            else {
-                core.setFailed(`${error}`);
-            }
-        }
-    });
-}
-run();
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(118);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
 //# sourceMappingURL=index.js.map

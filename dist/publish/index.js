@@ -511,9 +511,8 @@ exports.toCommandProperties = toCommandProperties;
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-var __webpack_unused_export__;
 
-__webpack_unused_export__ = ({ value: true });
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 const http = __nccwpck_require__(605);
 const https = __nccwpck_require__(211);
 const pm = __nccwpck_require__(443);
@@ -547,16 +546,16 @@ var HttpCodes;
     HttpCodes[HttpCodes["BadGateway"] = 502] = "BadGateway";
     HttpCodes[HttpCodes["ServiceUnavailable"] = 503] = "ServiceUnavailable";
     HttpCodes[HttpCodes["GatewayTimeout"] = 504] = "GatewayTimeout";
-})(HttpCodes = exports.o8 || (exports.o8 = {}));
+})(HttpCodes = exports.HttpCodes || (exports.HttpCodes = {}));
 var Headers;
 (function (Headers) {
     Headers["Accept"] = "accept";
     Headers["ContentType"] = "content-type";
-})(Headers = exports.PM || (exports.PM = {}));
+})(Headers = exports.Headers || (exports.Headers = {}));
 var MediaTypes;
 (function (MediaTypes) {
     MediaTypes["ApplicationJson"] = "application/json";
-})(MediaTypes = exports.Tr || (exports.Tr = {}));
+})(MediaTypes = exports.MediaTypes || (exports.MediaTypes = {}));
 /**
  * Returns the proxy URL, depending upon the supplied url and proxy environment variables.
  * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
@@ -565,7 +564,7 @@ function getProxyUrl(serverUrl) {
     let proxyUrl = pm.getProxyUrl(new URL(serverUrl));
     return proxyUrl ? proxyUrl.href : '';
 }
-__webpack_unused_export__ = getProxyUrl;
+exports.getProxyUrl = getProxyUrl;
 const HttpRedirectCodes = [
     HttpCodes.MovedPermanently,
     HttpCodes.ResourceMoved,
@@ -589,7 +588,7 @@ class HttpClientError extends Error {
         Object.setPrototypeOf(this, HttpClientError.prototype);
     }
 }
-__webpack_unused_export__ = HttpClientError;
+exports.HttpClientError = HttpClientError;
 class HttpClientResponse {
     constructor(message) {
         this.message = message;
@@ -606,12 +605,12 @@ class HttpClientResponse {
         });
     }
 }
-__webpack_unused_export__ = HttpClientResponse;
+exports.HttpClientResponse = HttpClientResponse;
 function isHttps(requestUrl) {
     let parsedUrl = new URL(requestUrl);
     return parsedUrl.protocol === 'https:';
 }
-__webpack_unused_export__ = isHttps;
+exports.isHttps = isHttps;
 class HttpClient {
     constructor(userAgent, handlers, requestOptions) {
         this._ignoreSslError = false;
@@ -1048,7 +1047,7 @@ class HttpClient {
         });
     }
 }
-exports.eN = HttpClient;
+exports.HttpClient = HttpClient;
 
 
 /***/ }),
@@ -1398,6 +1397,143 @@ exports.debug = debug; // for test
 
 /***/ }),
 
+/***/ 256:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.publish = void 0;
+const http = __importStar(__nccwpck_require__(925));
+// publish publishes the release.
+async function publish(opt) {
+    var _a;
+    const repository = ((_a = process.env['GITHUB_REPOSITORY']) === null || _a === void 0 ? void 0 : _a.split('/')) || ['', ''];
+    const owner = opt.owner || repository[0];
+    const repo = opt.repo || repository[1];
+    const discussion_category_name = opt.discussion_category_name !== ''
+        ? opt.discussion_category_name
+        : undefined;
+    const updater = opt.updateRelease || updateRelease;
+    await updater({
+        github_token: opt.github_token,
+        owner,
+        repo,
+        id: opt.id,
+        draft: false,
+        discussion_category_name
+    });
+}
+exports.publish = publish;
+const newGitHubClient = (token) => {
+    return new http.HttpClient('shogo82148-actions-create-release/v1', [], {
+        headers: {
+            Authorization: `token ${token}`,
+            Accept: 'application/vnd.github.v3+json'
+        }
+    });
+};
+// minium implementation of create a release API
+// https://docs.github.com/en/rest/reference/repos#create-a-release
+const updateRelease = async (params) => {
+    const client = newGitHubClient(params.github_token);
+    const body = JSON.stringify({
+        draft: params.draft,
+        discussion_category_name: params.discussion_category_name
+    });
+    const api = process.env['GITHUB_API_URL'] || 'https://api.github.com';
+    const url = `${api}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
+    const resp = await client.request('PATCH', url, body, {});
+    const statusCode = resp.message.statusCode;
+    const contents = await resp.readBody();
+    if (statusCode !== 200) {
+        throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
+    }
+};
+
+
+/***/ }),
+
+/***/ 334:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(186));
+const release = __importStar(__nccwpck_require__(256));
+async function run() {
+    try {
+        const id = core.getState('id');
+        if (id === '') {
+            // skip to publish
+            return;
+        }
+        const required = { required: true };
+        const github_token = core.getInput('github_token', required);
+        const owner = core.getInput('owner');
+        const repo = core.getInput('repo');
+        const discussion_category_name = core.getInput('discussion_category_name');
+        await release.publish({
+            github_token,
+            owner,
+            repo,
+            id,
+            discussion_category_name
+        });
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.setFailed(error);
+        }
+        else {
+            core.setFailed(`${error}`);
+        }
+    }
+}
+run();
+
+
+/***/ }),
+
 /***/ 357:
 /***/ ((module) => {
 
@@ -1511,132 +1647,18 @@ module.exports = require("util");
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
-
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(186);
-// EXTERNAL MODULE: ./node_modules/@actions/http-client/index.js
-var http_client = __nccwpck_require__(925);
-;// CONCATENATED MODULE: ./src/publish-release.ts
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-// publish publishes the release.
-function publish(opt) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function* () {
-        const repository = ((_a = process.env['GITHUB_REPOSITORY']) === null || _a === void 0 ? void 0 : _a.split('/')) || ['', ''];
-        const owner = opt.owner || repository[0];
-        const repo = opt.repo || repository[1];
-        const updater = opt.updateRelease || updateRelease;
-        yield updater({
-            github_token: opt.github_token,
-            owner,
-            repo,
-            id: opt.id,
-            draft: false
-        });
-    });
-}
-const newGitHubClient = (token) => {
-    return new http_client/* HttpClient */.eN('shogo82148-actions-create-release/v1', [], {
-        headers: {
-            Authorization: `token ${token}`,
-            Accept: 'application/vnd.github.v3+json'
-        }
-    });
-};
-// minium implementation of create a release API
-// https://docs.github.com/en/rest/reference/repos#create-a-release
-const updateRelease = (params) => __awaiter(void 0, void 0, void 0, function* () {
-    const client = newGitHubClient(params.github_token);
-    const body = JSON.stringify({
-        draft: params.draft
-    });
-    const api = process.env['GITHUB_API_URL'] || 'https://api.github.com';
-    const url = `${api}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
-    const resp = yield client.request('PATCH', url, body, {});
-    const statusCode = resp.message.statusCode;
-    const contents = yield resp.readBody();
-    if (statusCode !== 200) {
-        throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
-    }
-});
-
-;// CONCATENATED MODULE: ./src/publish.ts
-var publish_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-
-function run() {
-    return publish_awaiter(this, void 0, void 0, function* () {
-        try {
-            const id = core.getState('id');
-            if (id === '') {
-                // skip to publish
-                return;
-            }
-            const required = { required: true };
-            const github_token = core.getInput('github_token', required);
-            const owner = core.getInput('owner');
-            const repo = core.getInput('repo');
-            yield publish({
-                github_token,
-                owner,
-                repo,
-                id
-            });
-        }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(error);
-            }
-            else {
-                core.setFailed(`${error}`);
-            }
-        }
-    });
-}
-run();
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(334);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
 //# sourceMappingURL=index.js.map
