@@ -56,7 +56,8 @@ const updateRelease = async (
 ): Promise<void> => {
   const client = newGitHubClient(params.github_token)
   const body = JSON.stringify({
-    draft: params.draft
+    draft: params.draft,
+    discussion_category_name: params.discussion_category_name
   })
   const api = process.env['GITHUB_API_URL'] || 'https://api.github.com'
   const url = `${api}/repos/${params.owner}/${params.repo}/releases/${params.id}`
