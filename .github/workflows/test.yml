@@ -8,6 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12.x
+          cache: npm
       - name: install dependencies
         run: |
           npm ci
@@ -38,6 +42,10 @@ jobs:
       id: ${{ steps.create_release.outputs.id }}
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12.x
+          cache: npm
       - name: install dependencies
         run: |
           npm ci
@@ -56,6 +64,9 @@ jobs:
           body: |
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           discussion_category_name: "CI: Integration testing"
+          # generate release notes only on push events
+          # because GitHub fails to generate the notes on merged commits.
+          generate_release_notes: ${{ github.event_name == 'push' }}
 
   cleanup:
     if: always()
