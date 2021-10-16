@@ -64,6 +64,9 @@ jobs:
           body: |
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           discussion_category_name: "CI: Integration testing"
+          # generate release notes only on push events
+          # because GitHub fails to generate the notes on merged commits.
+          generate_release_notes: ${{ github.event_name == 'push' }}
 
   cleanup:
     if: always()

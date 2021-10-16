@@ -14,6 +14,7 @@ interface Options {
   owner: string;
   repo: string;
   discussion_category_name: string;
+  generate_release_notes: boolean;
 
   createRelease?: (params: ReposCreateReleaseParams) => Promise<ReposCreateReleaseResponse>;
 }
@@ -34,6 +35,7 @@ export async function create(opt: Options): Promise<Result> {
   let body: string | undefined;
   let target_commitish: string | undefined;
   let discussion_category_name: string | undefined;
+  const generate_release_notes = opt.generate_release_notes;
 
   if (opt.release_name !== "") {
     name = opt.release_name;
@@ -63,6 +65,7 @@ export async function create(opt: Options): Promise<Result> {
     draft: opt.draft,
     prerelease: opt.prerelease,
     discussion_category_name,
+    generate_release_notes,
   });
   return {
     id: `${resp.id}`,
@@ -103,6 +106,7 @@ interface ReposCreateReleaseParams {
   draft?: boolean;
   prerelease?: boolean;
   discussion_category_name?: string;
+  generate_release_notes?: boolean;
 }
 
 interface ReposCreateReleaseResponse {
@@ -125,6 +129,7 @@ const createRelease = async (
     draft: params.draft,
     prerelease: params.prerelease,
     discussion_category_name: params.discussion_category_name,
+    generate_release_notes: params.generate_release_notes,
   });
   const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
   const url = `${api}/repos/${params.owner}/${params.repo}/releases`;
