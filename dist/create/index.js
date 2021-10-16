@@ -134,12 +134,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
+exports.getIDToken = exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
 const command_1 = __nccwpck_require__(351);
 const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(278);
 const os = __importStar(__nccwpck_require__(87));
 const path = __importStar(__nccwpck_require__(622));
+const oidc_utils_1 = __nccwpck_require__(41);
 /**
  * The code to exit an action
  */
@@ -408,6 +409,12 @@ function getState(name) {
     return process.env[`STATE_${name}`] || '';
 }
 exports.getState = getState;
+function getIDToken(aud) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield oidc_utils_1.OidcClient.getIDToken(aud);
+    });
+}
+exports.getIDToken = getIDToken;
 //# sourceMappingURL=core.js.map
 
 /***/ }),
@@ -461,6 +468,90 @@ exports.issueCommand = issueCommand;
 
 /***/ }),
 
+/***/ 41:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.OidcClient = void 0;
+const http_client_1 = __nccwpck_require__(925);
+const auth_1 = __nccwpck_require__(702);
+const core_1 = __nccwpck_require__(186);
+class OidcClient {
+    static createHttpClient(allowRetry = true, maxRetry = 10) {
+        const requestOptions = {
+            allowRetries: allowRetry,
+            maxRetries: maxRetry
+        };
+        return new http_client_1.HttpClient('actions/oidc-client', [new auth_1.BearerCredentialHandler(OidcClient.getRequestToken())], requestOptions);
+    }
+    static getRequestToken() {
+        const token = process.env['ACTIONS_ID_TOKEN_REQUEST_TOKEN'];
+        if (!token) {
+            throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_TOKEN env variable');
+        }
+        return token;
+    }
+    static getIDTokenUrl() {
+        const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL'];
+        if (!runtimeUrl) {
+            throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable');
+        }
+        return runtimeUrl;
+    }
+    static getCall(id_token_url) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const httpclient = OidcClient.createHttpClient();
+            const res = yield httpclient
+                .getJson(id_token_url)
+                .catch(error => {
+                throw new Error(`Failed to get ID Token. \n 
+        Error Code : ${error.statusCode}\n 
+        Error Message: ${error.result.message}`);
+            });
+            const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
+            if (!id_token) {
+                throw new Error('Response json body do not have ID Token field');
+            }
+            return id_token;
+        });
+    }
+    static getIDToken(audience) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                // New ID Token is requested from action service
+                let id_token_url = OidcClient.getIDTokenUrl();
+                if (audience) {
+                    const encodedAudience = encodeURIComponent(audience);
+                    id_token_url = `${id_token_url}&audience=${encodedAudience}`;
+                }
+                core_1.debug(`ID token url is ${id_token_url}`);
+                const id_token = yield OidcClient.getCall(id_token_url);
+                core_1.setSecret(id_token);
+                return id_token;
+            }
+            catch (error) {
+                throw new Error(`Error message: ${error.message}`);
+            }
+        });
+    }
+}
+exports.OidcClient = OidcClient;
+//# sourceMappingURL=oidc-utils.js.map
+
+/***/ }),
+
 /***/ 278:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -496,6 +587,7 @@ function toCommandProperties(annotationProperties) {
     }
     return {
         title: annotationProperties.title,
+        file: annotationProperties.file,
         line: annotationProperties.startLine,
         endLine: annotationProperties.endLine,
         col: annotationProperties.startColumn,
@@ -504,6 +596,72 @@ function toCommandProperties(annotationProperties) {
 }
 exports.toCommandProperties = toCommandProperties;
 //# sourceMappingURL=utils.js.map
+
+/***/ }),
+
+/***/ 702:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+class BasicCredentialHandler {
+    constructor(username, password) {
+        this.username = username;
+        this.password = password;
+    }
+    prepareRequest(options) {
+        options.headers['Authorization'] =
+            'Basic ' +
+                Buffer.from(this.username + ':' + this.password).toString('base64');
+    }
+    // This handler cannot handle 401
+    canHandleAuthentication(response) {
+        return false;
+    }
+    handleAuthentication(httpClient, requestInfo, objs) {
+        return null;
+    }
+}
+exports.BasicCredentialHandler = BasicCredentialHandler;
+class BearerCredentialHandler {
+    constructor(token) {
+        this.token = token;
+    }
+    // currently implements pre-authorization
+    // TODO: support preAuth = false where it hooks on 401
+    prepareRequest(options) {
+        options.headers['Authorization'] = 'Bearer ' + this.token;
+    }
+    // This handler cannot handle 401
+    canHandleAuthentication(response) {
+        return false;
+    }
+    handleAuthentication(httpClient, requestInfo, objs) {
+        return null;
+    }
+}
+exports.BearerCredentialHandler = BearerCredentialHandler;
+class PersonalAccessTokenCredentialHandler {
+    constructor(token) {
+        this.token = token;
+    }
+    // currently implements pre-authorization
+    // TODO: support preAuth = false where it hooks on 401
+    prepareRequest(options) {
+        options.headers['Authorization'] =
+            'Basic ' + Buffer.from('PAT:' + this.token).toString('base64');
+    }
+    // This handler cannot handle 401
+    canHandleAuthentication(response) {
+        return false;
+    }
+    handleAuthentication(httpClient, requestInfo, objs) {
+        return null;
+    }
+}
+exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHandler;
+
 
 /***/ }),
 
@@ -1428,26 +1586,27 @@ const http = __importStar(__nccwpck_require__(925));
 // create creates a new release.
 async function create(opt) {
     var _a;
-    const repository = ((_a = process.env['GITHUB_REPOSITORY']) === null || _a === void 0 ? void 0 : _a.split('/')) || ['', ''];
+    const repository = ((_a = process.env["GITHUB_REPOSITORY"]) === null || _a === void 0 ? void 0 : _a.split("/")) || ["", ""];
     const owner = opt.owner || repository[0];
     const repo = opt.repo || repository[1];
     let name;
     let body;
     let target_commitish;
     let discussion_category_name;
-    if (opt.release_name !== '') {
+    const generate_release_notes = opt.generate_release_notes;
+    if (opt.release_name !== "") {
         name = opt.release_name;
     }
-    if (opt.body_path !== '') {
+    if (opt.body_path !== "") {
         body = await readFile(opt.body_path);
     }
-    if (!body && opt.body !== '') {
+    if (!body && opt.body !== "") {
         body = opt.body;
     }
-    if (opt.commitish !== '') {
+    if (opt.commitish !== "") {
         target_commitish = opt.commitish;
     }
-    if (opt.discussion_category_name !== '') {
+    if (opt.discussion_category_name !== "") {
         discussion_category_name = opt.discussion_category_name;
     }
     const creator = opt.createRelease || createRelease;
@@ -1461,19 +1620,20 @@ async function create(opt) {
         body,
         draft: opt.draft,
         prerelease: opt.prerelease,
-        discussion_category_name
+        discussion_category_name,
+        generate_release_notes,
     });
     return {
         id: `${resp.id}`,
         html_url: resp.html_url,
-        upload_url: resp.upload_url
+        upload_url: resp.upload_url,
     };
 }
 exports.create = create;
 // a wrapper for fs.readFile
 async function readFile(path) {
     return new Promise((resolve, reject) => {
-        fs.readFile(path, { encoding: 'utf8' }, (err, data) => {
+        fs.readFile(path, { encoding: "utf8" }, (err, data) => {
             if (err) {
                 reject(err);
             }
@@ -1482,11 +1642,11 @@ async function readFile(path) {
     });
 }
 const newGitHubClient = (token) => {
-    return new http.HttpClient('shogo82148-actions-create-release/v1', [], {
+    return new http.HttpClient("shogo82148-actions-create-release/v1", [], {
         headers: {
             Authorization: `token ${token}`,
-            Accept: 'application/vnd.github.v3+json'
-        }
+            Accept: "application/vnd.github.v3+json",
+        },
     });
 };
 // minium implementation of create a release API
@@ -1500,11 +1660,12 @@ const createRelease = async (params) => {
         body: params.body,
         draft: params.draft,
         prerelease: params.prerelease,
-        discussion_category_name: params.discussion_category_name
+        discussion_category_name: params.discussion_category_name,
+        generate_release_notes: params.generate_release_notes,
     });
-    const api = process.env['GITHUB_API_URL'] || 'https://api.github.com';
+    const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
     const url = `${api}/repos/${params.owner}/${params.repo}/releases`;
-    const resp = await client.request('POST', url, body, {});
+    const resp = await client.request("POST", url, body, {});
     const statusCode = resp.message.statusCode;
     const contents = await resp.readBody();
     if (statusCode !== 201) {
@@ -1546,23 +1707,24 @@ const release = __importStar(__nccwpck_require__(238));
 async function run() {
     try {
         const required = { required: true };
-        const github_token = core.getInput('github_token', required);
-        let tag_name = core.getInput('tag_name');
-        const release_name = core.getInput('release_name');
-        const body = core.getInput('body');
-        const body_path = core.getInput('body_path');
-        const draft = core.getBooleanInput('draft');
-        const prerelease = core.getBooleanInput('prerelease');
-        const commitish = core.getInput('commitish');
-        const owner = core.getInput('owner');
-        const repo = core.getInput('repo');
+        const github_token = core.getInput("github_token", required);
+        let tag_name = core.getInput("tag_name");
+        const release_name = core.getInput("release_name");
+        const body = core.getInput("body");
+        const body_path = core.getInput("body_path");
+        const draft = core.getBooleanInput("draft");
+        const prerelease = core.getBooleanInput("prerelease");
+        const commitish = core.getInput("commitish");
+        const owner = core.getInput("owner");
+        const repo = core.getInput("repo");
+        const generate_release_notes = core.getBooleanInput("generate_release_notes");
         // const discussion_category_name = core.getInput('discussion_category_name')
-        if (tag_name === '') {
-            const ref = process.env['GITHUB_REF'] || '';
-            if (!ref.startsWith('refs/tags/')) {
+        if (tag_name === "") {
+            const ref = process.env["GITHUB_REF"] || "";
+            if (!ref.startsWith("refs/tags/")) {
                 throw new Error(`${ref} is not a tag`);
             }
-            tag_name = ref.substring('refs/tags/'.length);
+            tag_name = ref.substring("refs/tags/".length);
         }
         const result = await release.create({
             github_token,
@@ -1574,18 +1736,19 @@ async function run() {
             commitish,
             owner,
             repo,
+            generate_release_notes,
             // Always create release as draft first.
             // It is to prevent users from seeing empty release.
             draft: true,
             // discussion_category_name is no effect with a draft release.
             // so we skip to pass it here.
-            discussion_category_name: ''
+            discussion_category_name: "",
         });
-        core.setOutput('id', result.id);
-        core.setOutput('html_url', result.html_url);
-        core.setOutput('upload_url', result.upload_url);
+        core.setOutput("id", result.id);
+        core.setOutput("html_url", result.html_url);
+        core.setOutput("upload_url", result.upload_url);
         if (!draft) {
-            core.saveState('id', result.id);
+            core.saveState("id", result.id);
         }
     }
     catch (error) {
