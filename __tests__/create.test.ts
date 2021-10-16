@@ -15,24 +15,14 @@ test("Create a new release", async () => {
     body_path: "",
     draft: false,
     prerelease: false,
-<<<<<<< HEAD
-    commitish: '',
-    owner: 'shogo82148',
-    repo: 'github-action-test',
-    discussion_category_name: '',
-    generate_release_notes: false,
-    createRelease: createRelease
-  })
-  expect(createRelease).toBeCalledTimes(1)
-=======
     commitish: "",
     owner: "shogo82148",
     repo: "github-action-test",
     discussion_category_name: "",
+    generate_release_notes: false,
     createRelease: createRelease,
   });
   expect(createRelease).toBeCalledTimes(1);
->>>>>>> main
   expect(createRelease).toHaveBeenCalledWith({
     github_token: "very-secret",
     tag_name: "v1.0.0",
@@ -40,16 +30,7 @@ test("Create a new release", async () => {
     body: undefined,
     draft: false,
     prerelease: false,
-<<<<<<< HEAD
     generate_release_notes: false,
-    owner: 'shogo82148',
-    repo: 'github-action-test'
-  })
-  expect(resp.id).toBe('123')
-  expect(resp.html_url).toBe('http://example.com/html')
-  expect(resp.upload_url).toBe('http://example.com/upload')
-})
-=======
     owner: "shogo82148",
     repo: "github-action-test",
   });
@@ -57,4 +38,3 @@ test("Create a new release", async () => {
   expect(resp.html_url).toBe("http://example.com/html");
   expect(resp.upload_url).toBe("http://example.com/upload");
 });
->>>>>>> main
