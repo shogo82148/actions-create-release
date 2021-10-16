@@ -19,6 +19,7 @@ test('Create a new release', async () => {
     owner: 'shogo82148',
     repo: 'github-action-test',
     discussion_category_name: '',
+    generate_release_notes: false,
     createRelease: createRelease
   })
   expect(createRelease).toBeCalledTimes(1)
@@ -29,6 +30,7 @@ test('Create a new release', async () => {
     body: undefined,
     draft: false,
     prerelease: false,
+    generate_release_notes: false,
     owner: 'shogo82148',
     repo: 'github-action-test'
   })

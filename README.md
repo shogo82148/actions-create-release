@@ -67,6 +67,13 @@ If specified, a discussion of the specified category is created and linked to th
 The value must be a category that already exists in the repository.
 For more information, see "[Managing categories for discussions in your repository.](https://docs.github.com/en/discussions/managing-discussions-for-your-community/managing-categories-for-discussions-in-your-repository)"
 
+### generate_release_notes
+
+Whether to automatically generate the name and body for this release.
+If `release_name` is specified, the specified name will be used;
+otherwise, a name will be automatically generated. If `body` or `body_path` is specified,
+the body will be pre-pended to the automatically generated notes.
+
 ## Outputs
 
 ### id
