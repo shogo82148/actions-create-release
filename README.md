@@ -10,13 +10,13 @@ This GitHub Action creates a release.
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Create Release
         uses: shogo82148/actions-create-release@v1
