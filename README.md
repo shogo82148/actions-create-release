@@ -73,6 +73,7 @@ Whether to automatically generate the name and body for this release.
 If `release_name` is specified, the specified name will be used;
 otherwise, a name will be automatically generated. If `body` or `body_path` is specified,
 the body will be pre-pended to the automatically generated notes.
+For more information, see "[Automatically generated release notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes)".
 
 ## Outputs
 
