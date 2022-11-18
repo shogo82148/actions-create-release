@@ -14,6 +14,18 @@ async function run(): Promise<void> {
     const owner = core.getInput("owner");
     const repo = core.getInput("repo");
     const discussion_category_name = core.getInput("discussion_category_name");
+    const make_latest_input = core.getInput("make_latest");
+
+    let make_latest: release.MakeLatest;
+    switch (make_latest_input) {
+      case "true":
+      case "false":
+      case "legacy":
+        make_latest = make_latest_input;
+        break;
+      default:
+        throw new Error(`invalid value for make_latest: ${make_latest_input}`);
+    }
 
     await release.publish({
       github_token,
@@ -21,6 +33,7 @@ async function run(): Promise<void> {
       repo,
       id,
       discussion_category_name,
+      make_latest,
     });
   } catch (error) {
     if (error instanceof Error) {

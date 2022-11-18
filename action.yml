@@ -28,6 +28,14 @@ inputs:
     description: "`true` to identify the release as a prerelease. `false` to identify the release as a full release. Default: `false`"
     required: false
     default: false
+  make_latest:
+    description: Specifies whether this release should be set as the
+                    latest release for the repository. Drafts and prereleases cannot
+                    be set as latest. Defaults to `true` for newly published releases.
+                    `legacy` specifies that the latest release should be determined
+                    based on the release creation date and higher semantic version.
+    required: false
+    default: 'true'
   commitish:
     description: "Any branch or commit SHA the Git tag is created from, unused if the Git tag already exists. Default: SHA of current commit"
     required: false
@@ -45,6 +53,7 @@ inputs:
     description: "Whether to automatically generate the name and body for this release."
     required: false
     default: false
+
 outputs:
   id:
     description: "The ID of the created Release"

@@ -1,5 +1,7 @@
 import * as http from "@actions/http-client";
 
+export type MakeLatest = "true" | "false" | "legacy";
+
 // Options is the options for publish function.
 interface Options {
   github_token: string;
@@ -7,6 +9,7 @@ interface Options {
   repo: string;
   id: string;
   discussion_category_name: string;
+  make_latest: MakeLatest;
 
   updateRelease?: (params: ReposUpdateReleaseParams) => Promise<void>;
 }
@@ -18,6 +21,7 @@ export async function publish(opt: Options): Promise<void> {
   const repo = opt.repo || repository[1];
   const discussion_category_name =
     opt.discussion_category_name !== "" ? opt.discussion_category_name : undefined;
+  const make_latest = opt.make_latest;
   const updater = opt.updateRelease || updateRelease;
   await updater({
     github_token: opt.github_token,
@@ -26,6 +30,7 @@ export async function publish(opt: Options): Promise<void> {
     id: opt.id,
     draft: false,
     discussion_category_name,
+    make_latest,
   });
 }
 
@@ -45,6 +50,7 @@ interface ReposUpdateReleaseParams {
   id: string;
   draft: boolean;
   discussion_category_name?: string | undefined;
+  make_latest: MakeLatest;
 }
 
 // minium implementation of create a release API
@@ -54,6 +60,7 @@ const updateRelease = async (params: ReposUpdateReleaseParams): Promise<void> =>
   const body = JSON.stringify({
     draft: params.draft,
     discussion_category_name: params.discussion_category_name,
+    make_latest: params.make_latest,
   });
   const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
   const url = `${api}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
