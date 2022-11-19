@@ -35,7 +35,7 @@ inputs:
                     `legacy` specifies that the latest release should be determined
                     based on the release creation date and higher semantic version.
     required: false
-    default: 'true'
+    default: ''
   commitish:
     description: "Any branch or commit SHA the Git tag is created from, unused if the Git tag already exists. Default: SHA of current commit"
     required: false
