@@ -13,6 +13,7 @@ test("Create a new release", async () => {
     owner: "shogo82148",
     repo: "github-action-test",
     discussion_category_name: "Test discussion",
+    make_latest: "true",
     updateRelease: updateRelease,
   });
   expect(updateRelease).toBeCalledTimes(1);
@@ -22,6 +23,7 @@ test("Create a new release", async () => {
     owner: "shogo82148",
     repo: "github-action-test",
     draft: false,
+    make_latest: "true",
     discussion_category_name: "Test discussion",
   });
 });

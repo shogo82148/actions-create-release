@@ -49,6 +49,14 @@ true to create a draft (unpublished) release, false to create a published one. D
 
 true to identify the release as a prerelease. false to identify the release as a full release. Default: false
 
+### make_latest
+
+Specifies whether this release should be set as the
+latest release for the repository. Drafts and prereleases cannot
+be set as latest. Defaults to automatic based on date and version.
+`legacy` specifies that the latest release should be determined
+based on the release creation date and higher semantic version.
+
 ### commitish
 
 Any branch or commit SHA the Git tag is created from, unused if the Git tag already exists. Default: SHA of current commit
