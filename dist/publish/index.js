@@ -2725,6 +2725,7 @@ async function publish(opt) {
     const owner = opt.owner || repository[0];
     const repo = opt.repo || repository[1];
     const discussion_category_name = opt.discussion_category_name !== "" ? opt.discussion_category_name : undefined;
+    const make_latest = opt.make_latest;
     const updater = opt.updateRelease || updateRelease;
     await updater({
         github_token: opt.github_token,
@@ -2733,6 +2734,7 @@ async function publish(opt) {
         id: opt.id,
         draft: false,
         discussion_category_name,
+        make_latest,
     });
 }
 exports.publish = publish;
@@ -2748,10 +2750,16 @@ const newGitHubClient = (token) => {
 // https://docs.github.com/en/rest/reference/repos#create-a-release
 const updateRelease = async (params) => {
     const client = newGitHubClient(params.github_token);
-    const body = JSON.stringify({
+    const raw = {
         draft: params.draft,
-        discussion_category_name: params.discussion_category_name,
-    });
+    };
+    if (params.discussion_category_name) {
+        raw["discussion_category_name"] = params.discussion_category_name;
+    }
+    if (params.make_latest) {
+        raw["make_latest"] = params.make_latest;
+    }
+    const body = JSON.stringify(raw);
     const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
     const url = `${api}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
     const resp = await client.request("PATCH", url, body, {});
@@ -2808,12 +2816,25 @@ async function run() {
         const owner = core.getInput("owner");
         const repo = core.getInput("repo");
         const discussion_category_name = core.getInput("discussion_category_name");
+        const make_latest_input = core.getInput("make_latest") || undefined;
+        let make_latest;
+        switch (make_latest_input) {
+            case undefined:
+            case "true":
+            case "false":
+            case "legacy":
+                make_latest = make_latest_input;
+                break;
+            default:
+                throw new Error(`invalid value for make_latest: ${make_latest_input}`);
+        }
         await release.publish({
             github_token,
             owner,
             repo,
             id,
             discussion_category_name,
+            make_latest,
         });
     }
     catch (error) {
