@@ -9,7 +9,7 @@ interface Options {
   repo: string;
   id: string;
   discussion_category_name: string;
-  make_latest: MakeLatest;
+  make_latest?: MakeLatest;
 
   updateRelease?: (params: ReposUpdateReleaseParams) => Promise<void>;
 }
@@ -50,18 +50,24 @@ interface ReposUpdateReleaseParams {
   id: string;
   draft: boolean;
   discussion_category_name?: string | undefined;
-  make_latest: MakeLatest;
+  make_latest?: MakeLatest | undefined;
 }
 
 // minium implementation of create a release API
 // https://docs.github.com/en/rest/reference/repos#create-a-release
 const updateRelease = async (params: ReposUpdateReleaseParams): Promise<void> => {
   const client = newGitHubClient(params.github_token);
-  const body = JSON.stringify({
+  const raw: { [key: string]: string | boolean } = {
     draft: params.draft,
-    discussion_category_name: params.discussion_category_name,
-    make_latest: params.make_latest,
-  });
+  };
+  if (params.discussion_category_name) {
+    raw["discussion_category_name"] = params.discussion_category_name;
+  }
+  if (params.make_latest) {
+    raw["make_latest"] = params.make_latest;
+  }
+
+  const body = JSON.stringify(raw);
   const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
   const url = `${api}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
   const resp = await client.request("PATCH", url, body, {});

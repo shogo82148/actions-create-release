@@ -53,7 +53,7 @@ true to identify the release as a prerelease. false to identify the release as a
 
 Specifies whether this release should be set as the
 latest release for the repository. Drafts and prereleases cannot
-be set as latest. Defaults to `true` for newly published releases.
+be set as latest. Defaults to automatic based on date and version.
 `legacy` specifies that the latest release should be determined
 based on the release creation date and higher semantic version.
 

@@ -14,14 +14,11 @@ async function run(): Promise<void> {
     const owner = core.getInput("owner");
     const repo = core.getInput("repo");
     const discussion_category_name = core.getInput("discussion_category_name");
-    const draft = core.getBooleanInput("draft");
-    const prerelease = core.getBooleanInput("prerelease");
+    const make_latest_input = core.getInput("make_latest") || undefined;
 
-    const make_latest_default = !draft && !prerelease ? "true" : "false";
-    const make_latest_input = core.getInput("make_latest") || make_latest_default;
-
-    let make_latest: release.MakeLatest;
+    let make_latest: release.MakeLatest | undefined;
     switch (make_latest_input) {
+      case undefined:
       case "true":
       case "false":
       case "legacy":
