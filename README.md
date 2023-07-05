@@ -3,8 +3,13 @@
 # Yet Another Create Release Action
 
 This GitHub Action creates a release.
+[actions/create-release] is a great action, but it is currently unmaintained.
+So I created another one.
 
 ## SYNOPSIS
+
+The action is compatible with [actions/create-release].
+It will work just by replacing the workflow's `actions/create-release` with `shogo82148/actions-create-release`.
 
 ```yaml
 on:
@@ -43,11 +48,11 @@ A file with contents describing the release. Optional, and not needed if using b
 
 ### draft
 
-true to create a draft (unpublished) release, false to create a published one. Default: false
+`true` to create a draft (unpublished) release, `false` to create a published one. Default: `false`.
 
 ### prerelease
 
-true to identify the release as a prerelease. false to identify the release as a full release. Default: false
+`true` to identify the release as a prerelease. `false` to identify the release as a full release. Default: `false`.
 
 ### make_latest
 
@@ -59,11 +64,11 @@ based on the release creation date and higher semantic version.
 
 ### commitish
 
-Any branch or commit SHA the Git tag is created from, unused if the Git tag already exists. Default: SHA of current commit
+Any branch or commit SHA the Git tag is created from, unused if the Git tag already exists. Default: SHA of current commit.
 
 ### owner
 
-The name of the owner of the repo. Used to identify the owner of the repository. Used when cutting releases for external repositories. Default: Current owner
+The name of the owner of the repo. Used to identify the owner of the repository. Used when cutting releases for external repositories. Default: Current owner.
 
 ### repo
 
@@ -99,8 +104,14 @@ The URL for uploading assets to the release, which could be used by GitHub Actio
 
 ## Related works
 
-- [actions/create-release](https://github.com/actions/create-release)
-- [elgohr/Github-Release-Action](https://github.com/elgohr/Github-Release-Action)
-- [marvinpinto/action-automatic-releases](https://github.com/marvinpinto/action-automatic-releases)
-- [softprops/action-gh-release](https://github.com/softprops/action-gh-release)
-- [ncipollo/release-action](https://github.com/ncipollo/release-action)
+- [actions/create-release]
+- [elgohr/Github-Release-Action]
+- [marvinpinto/action-automatic-releases]
+- [softprops/action-gh-release]
+- [ncipollo/release-action]
+
+[actions/create-release]: https://github.com/actions/create-release
+[elgohr/github-release-action]: https://github.com/elgohr/Github-Release-Action
+[marvinpinto/action-automatic-releases]: https://github.com/marvinpinto/action-automatic-releases
+[softprops/action-gh-release]: https://github.com/marvinpinto/action-automatic-releases
+[ncipollo/release-action]: https://github.com/ncipollo/release-action
