@@ -37,8 +37,9 @@ export async function publish(opt: Options): Promise<void> {
 const newGitHubClient = (token: string): http.HttpClient => {
   return new http.HttpClient("shogo82148-actions-create-release/v1", [], {
     headers: {
-      Authorization: `token ${token}`,
-      Accept: "application/vnd.github.v3+json",
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
     },
   });
 };
@@ -53,8 +54,8 @@ interface ReposUpdateReleaseParams {
   make_latest?: MakeLatest | undefined;
 }
 
-// minium implementation of create a release API
-// https://docs.github.com/en/rest/reference/repos#create-a-release
+// minium implementation of update a release API
+// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#update-a-release
 const updateRelease = async (params: ReposUpdateReleaseParams): Promise<void> => {
   const client = newGitHubClient(params.github_token);
   const raw: { [key: string]: string | boolean } = {

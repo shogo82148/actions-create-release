@@ -89,8 +89,9 @@ async function readFile(path: string): Promise<string> {
 const newGitHubClient = (token: string): http.HttpClient => {
   return new http.HttpClient("shogo82148-actions-create-release/v1", [], {
     headers: {
-      Authorization: `token ${token}`,
-      Accept: "application/vnd.github.v3+json",
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
     },
   });
 };
@@ -116,7 +117,7 @@ interface ReposCreateReleaseResponse {
 }
 
 // minium implementation of create a release API
-// https://docs.github.com/en/rest/reference/repos#create-a-release
+// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#create-a-release
 const createRelease = async (
   params: ReposCreateReleaseParams
 ): Promise<ReposCreateReleaseResponse> => {
