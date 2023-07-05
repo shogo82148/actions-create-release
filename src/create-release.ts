@@ -117,7 +117,7 @@ interface ReposCreateReleaseResponse {
 }
 
 // minium implementation of create a release API
-// https://docs.github.com/en/rest/reference/repos#create-a-release
+// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#create-a-release
 const createRelease = async (
   params: ReposCreateReleaseParams
 ): Promise<ReposCreateReleaseResponse> => {
