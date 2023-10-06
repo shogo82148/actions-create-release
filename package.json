@@ -4,6 +4,9 @@
   "private": true,
   "description": "Create a release for a tag in your repository",
   "main": "lib/index.js",
+  "engines": {
+    "node": "^20.0.0"
+  },
   "scripts": {
     "build": "tsc",
     "format": "prettier --write **/*.ts",
@@ -30,7 +33,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.5",
-    "@types/node": "^16.18.3",
+    "@types/node": "^20.8.2",
     "@typescript-eslint/parser": "^5.62.0",
     "@vercel/ncc": "^0.38.0",
     "eslint": "^8.50.0",
