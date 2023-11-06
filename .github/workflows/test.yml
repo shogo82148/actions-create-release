@@ -61,7 +61,7 @@ jobs:
           tag_name: test-${{ github.run_id }}
           release_name: Test for ${{ github.run_id }}
           prerelease: true
-          commitish: ff485f94581bff86f6105c0e1b1c32f1ab46c9b9 # on https://github.com/shogo82148/actions-create-release/releases/tag/v1.3.1
+          commitish: 29290f678d1c4c9408d7f5584199a3087d6d875b # on https://github.com/shogo82148/actions-create-release/releases/tag/v1.5.2
           body: |
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           discussion_category_name: "CI: Integration testing"
