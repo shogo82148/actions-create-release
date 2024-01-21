@@ -25595,6 +25595,153 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 2305:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// minimum implementation of GitHub API Client
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Client = exports.GitHubError = exports.Failure = exports.Success = void 0;
+const http = __importStar(__nccwpck_require__(6255));
+class Success {
+    value;
+    constructor(value) {
+        this.value = value;
+    }
+    isSuccess() {
+        return true;
+    }
+    isFailure() {
+        return false;
+    }
+}
+exports.Success = Success;
+class Failure {
+    value;
+    constructor(value) {
+        this.value = value;
+    }
+    isSuccess() {
+        return false;
+    }
+    isFailure() {
+        return true;
+    }
+}
+exports.Failure = Failure;
+class GitHubError {
+    statusCode;
+    error;
+    constructor(statusCode, error) {
+        this.statusCode = statusCode;
+        this.error = error;
+    }
+}
+exports.GitHubError = GitHubError;
+class Client {
+    token;
+    apiUrl;
+    httpClient;
+    constructor(token, apiUrl) {
+        this.token = token;
+        this.apiUrl = apiUrl;
+        this.httpClient = new http.HttpClient("shogo82148-actions-create-release/v1", [], {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+        });
+    }
+    // minium implementation of get a release by tag name API
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-a-release-by-tag-name
+    async getReleaseByTagName(params) {
+        const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/tags/${params.tag}`;
+        const resp = await this.httpClient.getJson(url);
+        if (resp.statusCode !== http.HttpCodes.OK) {
+            return new Failure(new GitHubError(resp.statusCode, resp.result));
+        }
+        return new Success(resp.result);
+    }
+    // minium implementation of create a release API
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#create-a-release
+    async createRelease(params) {
+        const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases`;
+        const resp = await this.httpClient.postJson(url, params);
+        if (resp.statusCode !== 201) {
+            return new Failure(new GitHubError(resp.statusCode, resp.result));
+        }
+        return new Success(resp.result);
+    }
+    // minium implementation of update a release API
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#update-a-release
+    async updateRelease(params) {
+        const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
+        const body = {
+            draft: params.draft,
+            discussion_category_name: params.discussion_category_name,
+        };
+        const resp = await this.httpClient.patchJson(url, body);
+        const statusCode = resp.statusCode;
+        if (statusCode !== 200) {
+            return new Failure(new GitHubError(statusCode, resp.result));
+        }
+        return new Success(resp.result);
+    }
+    // minimum implementation of deleting a release API
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#delete-a-release
+    async deleteRelease(params) {
+        const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
+        const resp = await this.httpClient.request("DELETE", url, "", {});
+        const statusCode = resp.message.statusCode ?? 0;
+        if (statusCode !== 204) {
+            const contents = await resp.readBody();
+            return new Failure(new GitHubError(statusCode, JSON.parse(contents)));
+        }
+        return new Success(undefined);
+    }
+    // minimum implementation of deleting a tag API
+    // https://docs.github.com/en/rest/git/refs?apiVersion=2022-11-28#delete-a-reference
+    async deleteTag(params) {
+        const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/git/refs/tags/${params.tag}`;
+        const resp = await this.httpClient.request("DELETE", url, "", {});
+        const statusCode = resp.message.statusCode ?? 0;
+        if (statusCode !== 204) {
+            const contents = await resp.readBody();
+            return new Failure(new GitHubError(statusCode, JSON.parse(contents)));
+        }
+        return new Success(undefined);
+    }
+}
+exports.Client = Client;
+
+
+/***/ }),
+
 /***/ 9256:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -25625,7 +25772,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.publish = void 0;
-const http = __importStar(__nccwpck_require__(6255));
+const core = __importStar(__nccwpck_require__(2186));
+const handleGitHubError = (msg, error) => {
+    core.error(`${msg}: unexpected status code: ${error.statusCode}, error: ${JSON.stringify(error.error)}`);
+    throw new Error(`unexpected status code: ${error.statusCode}`);
+};
 // publish publishes the release.
 async function publish(opt) {
     const repository = process.env["GITHUB_REPOSITORY"]?.split("/") || ["", ""];
@@ -25633,9 +25784,7 @@ async function publish(opt) {
     const repo = opt.repo || repository[1];
     const discussion_category_name = opt.discussion_category_name !== "" ? opt.discussion_category_name : undefined;
     const make_latest = opt.make_latest;
-    const updater = opt.updateRelease || updateRelease;
-    await updater({
-        github_token: opt.github_token,
+    const resp = await opt.client.updateRelease({
         owner,
         repo,
         id: opt.id,
@@ -25643,40 +25792,11 @@ async function publish(opt) {
         discussion_category_name,
         make_latest,
     });
+    if (resp.isFailure()) {
+        return handleGitHubError("failed to publish new release", resp.value);
+    }
 }
 exports.publish = publish;
-const newGitHubClient = (token) => {
-    return new http.HttpClient("shogo82148-actions-create-release/v1", [], {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
-    });
-};
-// minium implementation of update a release API
-// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#update-a-release
-const updateRelease = async (params) => {
-    const client = newGitHubClient(params.github_token);
-    const raw = {
-        draft: params.draft,
-    };
-    if (params.discussion_category_name) {
-        raw["discussion_category_name"] = params.discussion_category_name;
-    }
-    if (params.make_latest) {
-        raw["make_latest"] = params.make_latest;
-    }
-    const body = JSON.stringify(raw);
-    const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
-    const url = `${api}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
-    const resp = await client.request("PATCH", url, body, {});
-    const statusCode = resp.message.statusCode;
-    const contents = await resp.readBody();
-    if (statusCode !== 200) {
-        throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
-    }
-};
 
 
 /***/ }),
@@ -25712,6 +25832,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const release = __importStar(__nccwpck_require__(9256));
+const github = __importStar(__nccwpck_require__(2305));
 async function run() {
     try {
         const id = core.getState("id");
@@ -25721,6 +25842,7 @@ async function run() {
         }
         const required = { required: true };
         const github_token = core.getInput("github_token", required);
+        const client = new github.Client(github_token, process.env["GITHUB_API_URL"] || "https://api.github.com");
         const owner = core.getInput("owner");
         const repo = core.getInput("repo");
         const discussion_category_name = core.getInput("discussion_category_name");
@@ -25737,7 +25859,7 @@ async function run() {
                 throw new Error(`invalid value for make_latest: ${make_latest_input}`);
         }
         await release.publish({
-            github_token,
+            client,
             owner,
             repo,
             id,
@@ -25754,7 +25876,7 @@ async function run() {
         }
     }
 }
-run();
+void run();
 
 
 /***/ }),
