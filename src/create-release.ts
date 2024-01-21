@@ -72,7 +72,7 @@ export async function create(opt: Options): Promise<Result> {
         repo,
         id: release.id,
       });
-      if (!target_commitish) {
+      if (target_commitish) {
         core.warning(`delete the existing tag: ${release.tag_name}, ${release.target_commitish}`);
         await deleteTag({
           github_token: opt.github_token,
