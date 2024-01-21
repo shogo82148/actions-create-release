@@ -73,11 +73,12 @@ export async function create(opt: Options): Promise<Result> {
         id: release.id,
       });
       if (!target_commitish) {
+        core.warning(`delete the existing tag: ${release.tag_name}, ${release.target_commitish}`);
         await deleteTag({
           github_token: opt.github_token,
           owner,
           repo,
-          tag: opt.tag_name,
+          tag: release.tag_name,
         });
       }
     } catch (error) {}
@@ -135,6 +136,8 @@ interface ReposGetReleaseByTagNameParams {
 
 interface ReposGetReleaseByTagNameResponse {
   id: number;
+  tag_name: string;
+  target_commitish: string;
 
   // we don't need other fields
   // other fields are omitted
