@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import * as fs from "fs";
 import * as http from "@actions/http-client";
 
@@ -76,6 +77,7 @@ export async function create(opt: Options): Promise<Result> {
     };
   } catch (error) {
     // TODO: check the error is "already_exists"
+    core.warning(`the tag ${opt.tag_name} already exists: ${error}`);
 
     if (!opt.overwrite) {
       throw error;
