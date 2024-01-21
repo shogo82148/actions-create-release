@@ -55,73 +55,51 @@ export async function create(opt: Options): Promise<Result> {
     discussion_category_name = opt.discussion_category_name;
   }
 
-  const creator = opt.createRelease || createRelease;
-  try {
-    const resp = await creator({
-      github_token: opt.github_token,
-      owner,
-      repo,
-      tag_name: opt.tag_name,
-      target_commitish,
-      name,
-      body,
-      draft: opt.draft,
-      prerelease: opt.prerelease,
-      discussion_category_name,
-      generate_release_notes,
-    });
-    return {
-      id: `${resp.id}`,
-      html_url: resp.html_url,
-      upload_url: resp.upload_url,
-    };
-  } catch (error) {
-    // TODO: check the error is "already_exists"
-    core.warning(`the tag ${opt.tag_name} already exists: ${error}`);
-
-    if (!opt.overwrite) {
-      throw error;
-    }
-
-    // if the tag already exists, delete it and try again.
-    const release = await getReleaseByTagName({
-      github_token: opt.github_token,
-      owner,
-      repo,
-      tag: opt.tag_name,
-    });
-    await deleteRelease({
-      github_token: opt.github_token,
-      owner,
-      repo,
-      id: release.id,
-    });
-    await deleteTag({
-      github_token: opt.github_token,
-      owner,
-      repo,
-      tag: opt.tag_name,
-    });
-
-    const resp = await creator({
-      github_token: opt.github_token,
-      owner,
-      repo,
-      tag_name: opt.tag_name,
-      target_commitish,
-      name,
-      body,
-      draft: opt.draft,
-      prerelease: opt.prerelease,
-      discussion_category_name,
-      generate_release_notes,
-    });
-    return {
-      id: `${resp.id}`,
-      html_url: resp.html_url,
-      upload_url: resp.upload_url,
-    };
+  if (opt.overwrite) {
+    // delete the release if it already exists.
+    try {
+      const release = await getReleaseByTagName({
+        github_token: opt.github_token,
+        owner,
+        repo,
+        tag: opt.tag_name,
+      });
+      await deleteRelease({
+        github_token: opt.github_token,
+        owner,
+        repo,
+        id: release.id,
+      });
+      if (!target_commitish) {
+        await deleteTag({
+          github_token: opt.github_token,
+          owner,
+          repo,
+          tag: opt.tag_name,
+        });
+      }
+    } catch (error) {}
   }
+
+  const creator = opt.createRelease || createRelease;
+  const resp = await creator({
+    github_token: opt.github_token,
+    owner,
+    repo,
+    tag_name: opt.tag_name,
+    target_commitish,
+    name,
+    body,
+    draft: opt.draft,
+    prerelease: opt.prerelease,
+    discussion_category_name,
+    generate_release_notes,
+  });
+  return {
+    id: `${resp.id}`,
+    html_url: resp.html_url,
+    upload_url: resp.upload_url,
+  };
 }
 
 // a wrapper for fs.readFile
