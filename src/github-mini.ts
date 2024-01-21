@@ -43,13 +43,13 @@ export class GitHubError {
   ) {}
 }
 
-interface GetReleaseByTagNameParams {
+export interface GetReleaseByTagNameParams {
   owner: string;
   repo: string;
   tag: string;
 }
 
-interface GetReleaseByTagNameResponse {
+export interface GetReleaseByTagNameResponse {
   id: number;
   tag_name: string;
   target_commitish: string;
@@ -94,13 +94,13 @@ export interface UpdateReleaseResponse {
   upload_url: string;
 }
 
-interface DeleteReleaseParams {
+export interface DeleteReleaseParams {
   owner: string;
   repo: string;
   id: number;
 }
 
-interface DeleteTagParams {
+export interface DeleteTagParams {
   owner: string;
   repo: string;
   tag: string;
