@@ -1,6 +1,5 @@
 import * as core from "@actions/core";
 import * as fs from "fs";
-import * as http from "@actions/http-client";
 import * as github from "./github-mini";
 
 // Options is the options for create function.
@@ -76,13 +75,15 @@ export async function create(opt: Options): Promise<Result> {
     } else {
       const release = resp.value;
       core.warning(`delete the existing release: ${release.id}`);
-
-      await deleteRelease({
-        github_token: opt.github_token,
+      const deleteResult = await opt.client.deleteRelease({
         owner,
         repo,
         id: release.id,
       });
+      if (deleteResult.isFailure()) {
+        return handleGitHubError("failed to delete the existing release", deleteResult.value);
+      }
+
       if (target_commitish) {
         core.warning(`delete the existing tag: ${release.tag_name}, ${release.target_commitish}`);
         const resp = await opt.client.deleteTag({
@@ -132,35 +133,3 @@ async function readFile(path: string): Promise<string> {
     });
   });
 }
-
-const newGitHubClient = (token: string): http.HttpClient => {
-  return new http.HttpClient("shogo82148-actions-create-release/v1", [], {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-    },
-  });
-};
-
-interface ReposDeleteReleaseParams {
-  github_token: string;
-  owner: string;
-  repo: string;
-  id: number;
-}
-
-// minimum implementation of deleting a release API
-// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#delete-a-release
-const deleteRelease = async (params: ReposDeleteReleaseParams): Promise<void> => {
-  const client = newGitHubClient(params.github_token);
-  const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
-  const url = `${api}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
-  const resp = await client.request("DELETE", url, "", {});
-  const statusCode = resp.message.statusCode;
-  if (statusCode !== 204) {
-    const contents = await resp.readBody();
-    throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
-  }
-  return;
-};

@@ -77,6 +77,12 @@ interface CreateReleaseResponse {
   upload_url: string;
 }
 
+interface DeleteReleaseParams {
+  owner: string;
+  repo: string;
+  id: number;
+}
+
 interface DeleteTagParams {
   owner: string;
   repo: string;
@@ -123,6 +129,19 @@ export class Client {
       return new Failure(new GitHubError(resp.statusCode, resp.result as GitHubErrorValue));
     }
     return new Success(resp.result as CreateReleaseResponse);
+  }
+
+  // minimum implementation of deleting a release API
+  // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#delete-a-release
+  async deleteRelease(params: DeleteReleaseParams): Promise<Result<void, GitHubError>> {
+    const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
+    const resp = await this.httpClient.request("DELETE", url, "", {});
+    const statusCode = resp.message.statusCode ?? 0;
+    if (statusCode !== 204) {
+      const contents = await resp.readBody();
+      return new Failure(new GitHubError(statusCode, JSON.parse(contents) as GitHubErrorValue));
+    }
+    return new Success(undefined);
   }
 
   // minimum implementation of deleting a tag API
