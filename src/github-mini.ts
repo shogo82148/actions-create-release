@@ -4,9 +4,9 @@ import * as http from "@actions/http-client";
 
 // Result is a type that represents either Success or Failure.
 // ref. https://dev.classmethod.jp/articles/error-handling-practice-of-typescript/
-type Result<T, E> = Success<T, E> | Failure<T, E>;
+export type Result<T, E> = Success<T, E> | Failure<T, E>;
 
-class Success<T, E> {
+export class Success<T, E> {
   constructor(readonly value: T) {}
   isSuccess(): this is Success<T, E> {
     return true;
@@ -16,7 +16,7 @@ class Success<T, E> {
   }
 }
 
-class Failure<T, E> {
+export class Failure<T, E> {
   constructor(readonly value: E) {}
   isSuccess(): this is Success<T, E> {
     return false;
@@ -58,7 +58,7 @@ interface GetReleaseByTagNameResponse {
   // other fields are omitted
 }
 
-interface CreateReleaseParams {
+export interface CreateReleaseParams {
   owner: string;
   repo: string;
   tag_name: string;
@@ -71,7 +71,7 @@ interface CreateReleaseParams {
   generate_release_notes?: boolean;
 }
 
-interface CreateReleaseResponse {
+export interface CreateReleaseResponse {
   id: number;
   html_url: string;
   upload_url: string;
