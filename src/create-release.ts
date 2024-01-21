@@ -15,6 +15,7 @@ interface Options {
   repo: string;
   discussion_category_name: string;
   generate_release_notes: boolean;
+  overwrite: boolean;
 
   createRelease?: (params: ReposCreateReleaseParams) => Promise<ReposCreateReleaseResponse>;
 }
@@ -54,24 +55,71 @@ export async function create(opt: Options): Promise<Result> {
   }
 
   const creator = opt.createRelease || createRelease;
-  const resp = await creator({
-    github_token: opt.github_token,
-    owner,
-    repo,
-    tag_name: opt.tag_name,
-    target_commitish,
-    name,
-    body,
-    draft: opt.draft,
-    prerelease: opt.prerelease,
-    discussion_category_name,
-    generate_release_notes,
-  });
-  return {
-    id: `${resp.id}`,
-    html_url: resp.html_url,
-    upload_url: resp.upload_url,
-  };
+  try {
+    const resp = await creator({
+      github_token: opt.github_token,
+      owner,
+      repo,
+      tag_name: opt.tag_name,
+      target_commitish,
+      name,
+      body,
+      draft: opt.draft,
+      prerelease: opt.prerelease,
+      discussion_category_name,
+      generate_release_notes,
+    });
+    return {
+      id: `${resp.id}`,
+      html_url: resp.html_url,
+      upload_url: resp.upload_url,
+    };
+  } catch (error) {
+    // TODO: check the error is "already_exists"
+
+    if (!opt.overwrite) {
+      throw error;
+    }
+
+    // if the tag already exists, delete it and try again.
+    const release = await getReleaseByTagName({
+      github_token: opt.github_token,
+      owner,
+      repo,
+      tag: opt.tag_name,
+    });
+    await deleteRelease({
+      github_token: opt.github_token,
+      owner,
+      repo,
+      id: release.id,
+    });
+    await deleteTag({
+      github_token: opt.github_token,
+      owner,
+      repo,
+      tag: opt.tag_name,
+    });
+
+    const resp = await creator({
+      github_token: opt.github_token,
+      owner,
+      repo,
+      tag_name: opt.tag_name,
+      target_commitish,
+      name,
+      body,
+      draft: opt.draft,
+      prerelease: opt.prerelease,
+      discussion_category_name,
+      generate_release_notes,
+    });
+    return {
+      id: `${resp.id}`,
+      html_url: resp.html_url,
+      upload_url: resp.upload_url,
+    };
+  }
 }
 
 // a wrapper for fs.readFile
@@ -94,6 +142,37 @@ const newGitHubClient = (token: string): http.HttpClient => {
       "X-GitHub-Api-Version": "2022-11-28",
     },
   });
+};
+
+interface ReposGetReleaseByTagNameParams {
+  github_token: string;
+  owner: string;
+  repo: string;
+  tag: string;
+}
+
+interface ReposGetReleaseByTagNameResponse {
+  id: number;
+
+  // we don't need other fields
+  // other fields are omitted
+}
+
+// minium implementation of get a release by tag name API
+// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-a-release-by-tag-name
+const getReleaseByTagName = async (
+  params: ReposGetReleaseByTagNameParams,
+): Promise<ReposGetReleaseByTagNameResponse> => {
+  const client = newGitHubClient(params.github_token);
+  const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
+  const url = `${api}/repos/${params.owner}/${params.repo}/releases/tags/${params.tag}`;
+  const resp = await client.request("GET", url, "", {});
+  const statusCode = resp.message.statusCode;
+  const contents = await resp.readBody();
+  if (statusCode !== 200) {
+    throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
+  }
+  return JSON.parse(contents) as ReposGetReleaseByTagNameResponse;
 };
 
 interface ReposCreateReleaseParams {
@@ -141,4 +220,48 @@ const createRelease = async (
     throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
   }
   return JSON.parse(contents) as ReposCreateReleaseResponse;
+};
+
+interface ReposDeleteTagParams {
+  github_token: string;
+  owner: string;
+  repo: string;
+  tag: string;
+}
+
+// minimum implementation of deleting a tag API
+// https://docs.github.com/en/rest/git/refs?apiVersion=2022-11-28#delete-a-reference
+const deleteTag = async (params: ReposDeleteTagParams): Promise<void> => {
+  const client = newGitHubClient(params.github_token);
+  const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
+  const url = `${api}/repos/${params.owner}/${params.repo}/git/refs/tags/${params.tag}`;
+  const resp = await client.request("DELETE", url, "", {});
+  const statusCode = resp.message.statusCode;
+  if (statusCode !== 204) {
+    const contents = await resp.readBody();
+    throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
+  }
+  return;
+};
+
+interface ReposDeleteReleaseParams {
+  github_token: string;
+  owner: string;
+  repo: string;
+  id: number;
+}
+
+// minimum implementation of deleting a release API
+// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#delete-a-release
+const deleteRelease = async (params: ReposDeleteReleaseParams): Promise<void> => {
+  const client = newGitHubClient(params.github_token);
+  const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
+  const url = `${api}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
+  const resp = await client.request("DELETE", url, "", {});
+  const statusCode = resp.message.statusCode;
+  if (statusCode !== 204) {
+    const contents = await resp.readBody();
+    throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
+  }
+  return;
 };
