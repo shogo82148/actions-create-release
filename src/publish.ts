@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as release from "./publish-release";
+import * as github from "./github-mini";
 
 async function run(): Promise<void> {
   try {
@@ -11,12 +12,16 @@ async function run(): Promise<void> {
 
     const required = { required: true };
     const github_token = core.getInput("github_token", required);
+    const client = new github.Client(
+      github_token,
+      process.env["GITHUB_API_URL"] || "https://api.github.com",
+    );
     const owner = core.getInput("owner");
     const repo = core.getInput("repo");
     const discussion_category_name = core.getInput("discussion_category_name");
     const make_latest_input = core.getInput("make_latest") || undefined;
 
-    let make_latest: release.MakeLatest | undefined;
+    let make_latest: github.MakeLatest | undefined;
     switch (make_latest_input) {
       case undefined:
       case "true":
@@ -29,7 +34,7 @@ async function run(): Promise<void> {
     }
 
     await release.publish({
-      github_token,
+      client,
       owner,
       repo,
       id,
@@ -45,4 +50,4 @@ async function run(): Promise<void> {
   }
 }
 
-run();
+void run();

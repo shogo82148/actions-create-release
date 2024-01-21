@@ -53,6 +53,10 @@ inputs:
     description: "Whether to automatically generate the name and body for this release."
     required: false
     default: false
+  overwrite:
+    description: "Whether to overwrite the release if it already exists."
+    required: false
+    default: false
 
 outputs:
   id:
