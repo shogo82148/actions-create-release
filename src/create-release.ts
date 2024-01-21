@@ -5,7 +5,7 @@ import * as github from "./github-mini";
 // Options is the options for create function.
 interface Options {
   client: github.Client;
-  github_token: string;
+
   tag_name: string;
   release_name: string;
   body: string;

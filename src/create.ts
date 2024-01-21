@@ -33,7 +33,6 @@ async function run(): Promise<void> {
     }
     const result = await release.create({
       client,
-      github_token,
       tag_name,
       release_name,
       body,

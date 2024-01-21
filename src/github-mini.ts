@@ -77,6 +77,17 @@ interface CreateReleaseResponse {
   upload_url: string;
 }
 
+export type MakeLatest = "true" | "false" | "legacy";
+
+interface UpdateReleaseParams {
+  owner: string;
+  repo: string;
+  id: string;
+  draft: boolean;
+  discussion_category_name?: string | undefined;
+  make_latest?: MakeLatest | undefined;
+}
+
 interface DeleteReleaseParams {
   owner: string;
   repo: string;
@@ -129,6 +140,22 @@ export class Client {
       return new Failure(new GitHubError(resp.statusCode, resp.result as GitHubErrorValue));
     }
     return new Success(resp.result as CreateReleaseResponse);
+  }
+
+  // minium implementation of update a release API
+  // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#update-a-release
+  async updateRelease(params: UpdateReleaseParams): Promise<Result<void, GitHubError>> {
+    const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
+    const body = {
+      draft: params.draft,
+      discussion_category_name: params.discussion_category_name,
+    };
+    const resp = await this.httpClient.patchJson(url, body);
+    const statusCode = resp.statusCode;
+    if (statusCode !== 200) {
+      return new Failure(new GitHubError(statusCode, resp.result as GitHubErrorValue));
+    }
+    return new Success(undefined);
   }
 
   // minimum implementation of deleting a release API
