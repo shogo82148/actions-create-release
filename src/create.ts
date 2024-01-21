@@ -1,10 +1,16 @@
 import * as core from "@actions/core";
 import * as release from "./create-release";
+import * as github from "./github-mini";
 
 async function run(): Promise<void> {
   try {
     const required = { required: true };
     const github_token = core.getInput("github_token", required);
+    const client = new github.Client(
+      github_token,
+      process.env["GITHUB_API_URL"] || "https://api.github.com",
+    );
+
     let tag_name = core.getInput("tag_name");
     const release_name = core.getInput("release_name");
     const body = core.getInput("body");
@@ -16,6 +22,8 @@ async function run(): Promise<void> {
     const repo = core.getInput("repo");
     const generate_release_notes = core.getBooleanInput("generate_release_notes");
     // const discussion_category_name = core.getInput('discussion_category_name')
+    const overwrite = core.getBooleanInput("overwrite");
+
     if (tag_name === "") {
       const ref = process.env["GITHUB_REF"] || "";
       if (!ref.startsWith("refs/tags/")) {
@@ -24,7 +32,7 @@ async function run(): Promise<void> {
       tag_name = ref.substring("refs/tags/".length);
     }
     const result = await release.create({
-      github_token,
+      client,
       tag_name,
       release_name,
       body,
@@ -34,6 +42,7 @@ async function run(): Promise<void> {
       owner,
       repo,
       generate_release_notes,
+      overwrite,
 
       // Always create release as draft first.
       // It is to prevent users from seeing empty release.
@@ -59,4 +68,4 @@ async function run(): Promise<void> {
   }
 }
 
-run();
+void run();
