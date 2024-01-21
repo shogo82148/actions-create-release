@@ -64,6 +64,8 @@ export async function create(opt: Options): Promise<Result> {
         repo,
         tag: opt.tag_name,
       });
+
+      core.warning(`delete the existing release: ${release.id}`);
       await deleteRelease({
         github_token: opt.github_token,
         owner,
