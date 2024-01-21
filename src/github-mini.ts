@@ -36,7 +36,7 @@ interface GitHubErrorValue {
   }[];
 }
 
-class GitHubError {
+export class GitHubError {
   constructor(
     readonly statusCode: number,
     readonly error: GitHubErrorValue,
@@ -56,6 +56,25 @@ interface GetReleaseByTagNameResponse {
 
   // we don't need other fields
   // other fields are omitted
+}
+
+interface CreateReleaseParams {
+  owner: string;
+  repo: string;
+  tag_name: string;
+  target_commitish?: string;
+  name?: string;
+  body?: string;
+  draft?: boolean;
+  prerelease?: boolean;
+  discussion_category_name?: string;
+  generate_release_notes?: boolean;
+}
+
+interface CreateReleaseResponse {
+  id: number;
+  html_url: string;
+  upload_url: string;
 }
 
 export class Client {
@@ -85,5 +104,18 @@ export class Client {
       return new Failure(new GitHubError(resp.statusCode, resp.result as GitHubErrorValue));
     }
     return new Success(resp.result as GetReleaseByTagNameResponse);
+  }
+
+  // minium implementation of create a release API
+  // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#create-a-release
+  async createRelease(
+    params: CreateReleaseParams,
+  ): Promise<Result<CreateReleaseResponse, GitHubError>> {
+    const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases`;
+    const resp = await this.httpClient.postJson(url, params);
+    if (resp.statusCode !== 201) {
+      return new Failure(new GitHubError(resp.statusCode, resp.result as GitHubErrorValue));
+    }
+    return new Success(resp.result as CreateReleaseResponse);
   }
 }

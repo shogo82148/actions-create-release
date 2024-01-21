@@ -19,8 +19,6 @@ interface Options {
   discussion_category_name: string;
   generate_release_notes: boolean;
   overwrite: boolean;
-
-  createRelease?: (params: ReposCreateReleaseParams) => Promise<ReposCreateReleaseResponse>;
 }
 
 // Result is the result for create function.
@@ -29,6 +27,13 @@ interface Result {
   html_url: string;
   upload_url: string;
 }
+
+const handleGitHubError = (msg: string, error: github.GitHubError): never => {
+  core.error(
+    `${msg}: unexpected status code: ${error.statusCode}, error: ${JSON.stringify(error.error)}`,
+  );
+  throw new Error(`unexpected status code: ${error.statusCode}`);
+};
 
 // create creates a new release.
 export async function create(opt: Options): Promise<Result> {
@@ -64,7 +69,11 @@ export async function create(opt: Options): Promise<Result> {
       repo,
       tag: opt.tag_name,
     });
-    if (resp.isSuccess()) {
+    if (resp.isFailure()) {
+      if (resp.value.statusCode !== 404) {
+        return handleGitHubError("failed to get the existing release", resp.value);
+      }
+    } else {
       const release = resp.value;
       core.warning(`delete the existing release: ${release.id}`);
 
@@ -83,20 +92,10 @@ export async function create(opt: Options): Promise<Result> {
           tag: release.tag_name,
         });
       }
-    } else {
-      const error = resp.value;
-      if (error.statusCode !== http.HttpCodes.NotFound) {
-        core.error(
-          `unexpected status code: ${error.statusCode}, error: ${JSON.stringify(error.error)}`,
-        );
-        throw new Error(`unexpected status code: ${error.statusCode}`);
-      }
     }
   }
 
-  const creator = opt.createRelease || createRelease;
-  const resp = await creator({
-    github_token: opt.github_token,
+  const resp = await opt.client.createRelease({
     owner,
     repo,
     tag_name: opt.tag_name,
@@ -108,10 +107,15 @@ export async function create(opt: Options): Promise<Result> {
     discussion_category_name,
     generate_release_notes,
   });
+  if (resp.isFailure()) {
+    return handleGitHubError("failed to create a release", resp.value);
+  }
+
+  const release = resp.value;
   return {
-    id: `${resp.id}`,
-    html_url: resp.html_url,
-    upload_url: resp.upload_url,
+    id: `${release.id}`,
+    html_url: release.html_url,
+    upload_url: release.upload_url,
   };
 }
 
@@ -135,53 +139,6 @@ const newGitHubClient = (token: string): http.HttpClient => {
       "X-GitHub-Api-Version": "2022-11-28",
     },
   });
-};
-
-interface ReposCreateReleaseParams {
-  github_token: string;
-  owner: string;
-  repo: string;
-  tag_name: string;
-  target_commitish?: string;
-  name?: string;
-  body?: string;
-  draft?: boolean;
-  prerelease?: boolean;
-  discussion_category_name?: string;
-  generate_release_notes?: boolean;
-}
-
-interface ReposCreateReleaseResponse {
-  id: number;
-  html_url: string;
-  upload_url: string;
-}
-
-// minium implementation of create a release API
-// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#create-a-release
-const createRelease = async (
-  params: ReposCreateReleaseParams,
-): Promise<ReposCreateReleaseResponse> => {
-  const client = newGitHubClient(params.github_token);
-  const body = JSON.stringify({
-    tag_name: params.tag_name,
-    target_commitish: params.target_commitish,
-    name: params.name,
-    body: params.body,
-    draft: params.draft,
-    prerelease: params.prerelease,
-    discussion_category_name: params.discussion_category_name,
-    generate_release_notes: params.generate_release_notes,
-  });
-  const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
-  const url = `${api}/repos/${params.owner}/${params.repo}/releases`;
-  const resp = await client.request("POST", url, body, {});
-  const statusCode = resp.message.statusCode;
-  const contents = await resp.readBody();
-  if (statusCode !== 201) {
-    throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
-  }
-  return JSON.parse(contents) as ReposCreateReleaseResponse;
 };
 
 interface ReposDeleteTagParams {
