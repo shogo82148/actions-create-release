@@ -1,9 +1,11 @@
 import * as core from "@actions/core";
 import * as fs from "fs";
 import * as http from "@actions/http-client";
+import * as github from "./github-mini";
 
 // Options is the options for create function.
 interface Options {
+  client: github.Client;
   github_token: string;
   tag_name: string;
   release_name: string;
@@ -57,15 +59,15 @@ export async function create(opt: Options): Promise<Result> {
 
   if (opt.overwrite) {
     // delete the release if it already exists.
-    try {
-      const release = await getReleaseByTagName({
-        github_token: opt.github_token,
-        owner,
-        repo,
-        tag: opt.tag_name,
-      });
-
+    const resp = await opt.client.getReleaseByTagName({
+      owner,
+      repo,
+      tag: opt.tag_name,
+    });
+    if (resp.isSuccess()) {
+      const release = resp.value;
       core.warning(`delete the existing release: ${release.id}`);
+
       await deleteRelease({
         github_token: opt.github_token,
         owner,
@@ -81,7 +83,15 @@ export async function create(opt: Options): Promise<Result> {
           tag: release.tag_name,
         });
       }
-    } catch (error) {}
+    } else {
+      const error = resp.value;
+      if (error.statusCode !== http.HttpCodes.NotFound) {
+        core.error(
+          `unexpected status code: ${error.statusCode}, error: ${JSON.stringify(error.error)}`,
+        );
+        throw new Error(`unexpected status code: ${error.statusCode}`);
+      }
+    }
   }
 
   const creator = opt.createRelease || createRelease;
@@ -125,39 +135,6 @@ const newGitHubClient = (token: string): http.HttpClient => {
       "X-GitHub-Api-Version": "2022-11-28",
     },
   });
-};
-
-interface ReposGetReleaseByTagNameParams {
-  github_token: string;
-  owner: string;
-  repo: string;
-  tag: string;
-}
-
-interface ReposGetReleaseByTagNameResponse {
-  id: number;
-  tag_name: string;
-  target_commitish: string;
-
-  // we don't need other fields
-  // other fields are omitted
-}
-
-// minium implementation of get a release by tag name API
-// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-a-release-by-tag-name
-const getReleaseByTagName = async (
-  params: ReposGetReleaseByTagNameParams,
-): Promise<ReposGetReleaseByTagNameResponse> => {
-  const client = newGitHubClient(params.github_token);
-  const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
-  const url = `${api}/repos/${params.owner}/${params.repo}/releases/tags/${params.tag}`;
-  const resp = await client.request("GET", url, "", {});
-  const statusCode = resp.message.statusCode;
-  const contents = await resp.readBody();
-  if (statusCode !== 200) {
-    throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
-  }
-  return JSON.parse(contents) as ReposGetReleaseByTagNameResponse;
 };
 
 interface ReposCreateReleaseParams {

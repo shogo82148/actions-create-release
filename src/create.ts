@@ -1,10 +1,16 @@
 import * as core from "@actions/core";
 import * as release from "./create-release";
+import * as github from "./github-mini";
 
 async function run(): Promise<void> {
   try {
     const required = { required: true };
     const github_token = core.getInput("github_token", required);
+    const client = new github.Client(
+      github_token,
+      process.env["GITHUB_API_URL"] || "https://api.github.com",
+    );
+
     let tag_name = core.getInput("tag_name");
     const release_name = core.getInput("release_name");
     const body = core.getInput("body");
@@ -26,6 +32,7 @@ async function run(): Promise<void> {
       tag_name = ref.substring("refs/tags/".length);
     }
     const result = await release.create({
+      client,
       github_token,
       tag_name,
       release_name,
