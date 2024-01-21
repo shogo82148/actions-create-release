@@ -77,6 +77,12 @@ interface CreateReleaseResponse {
   upload_url: string;
 }
 
+interface DeleteTagParams {
+  owner: string;
+  repo: string;
+  tag: string;
+}
+
 export class Client {
   httpClient: http.HttpClient;
 
@@ -117,5 +123,18 @@ export class Client {
       return new Failure(new GitHubError(resp.statusCode, resp.result as GitHubErrorValue));
     }
     return new Success(resp.result as CreateReleaseResponse);
+  }
+
+  // minimum implementation of deleting a tag API
+  // https://docs.github.com/en/rest/git/refs?apiVersion=2022-11-28#delete-a-reference
+  async deleteTag(params: DeleteTagParams): Promise<Result<void, GitHubError>> {
+    const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/git/refs/tags/${params.tag}`;
+    const resp = await this.httpClient.request("DELETE", url, "", {});
+    const statusCode = resp.message.statusCode ?? 0;
+    if (statusCode !== 204) {
+      const contents = await resp.readBody();
+      return new Failure(new GitHubError(statusCode, JSON.parse(contents) as GitHubErrorValue));
+    }
+    return new Success(undefined);
   }
 }

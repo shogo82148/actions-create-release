@@ -85,12 +85,14 @@ export async function create(opt: Options): Promise<Result> {
       });
       if (target_commitish) {
         core.warning(`delete the existing tag: ${release.tag_name}, ${release.target_commitish}`);
-        await deleteTag({
-          github_token: opt.github_token,
+        const resp = await opt.client.deleteTag({
           owner,
           repo,
           tag: release.tag_name,
         });
+        if (resp.isFailure()) {
+          return handleGitHubError("failed to delete the existing tag", resp.value);
+        }
       }
     }
   }
@@ -139,28 +141,6 @@ const newGitHubClient = (token: string): http.HttpClient => {
       "X-GitHub-Api-Version": "2022-11-28",
     },
   });
-};
-
-interface ReposDeleteTagParams {
-  github_token: string;
-  owner: string;
-  repo: string;
-  tag: string;
-}
-
-// minimum implementation of deleting a tag API
-// https://docs.github.com/en/rest/git/refs?apiVersion=2022-11-28#delete-a-reference
-const deleteTag = async (params: ReposDeleteTagParams): Promise<void> => {
-  const client = newGitHubClient(params.github_token);
-  const api = process.env["GITHUB_API_URL"] || "https://api.github.com";
-  const url = `${api}/repos/${params.owner}/${params.repo}/git/refs/tags/${params.tag}`;
-  const resp = await client.request("DELETE", url, "", {});
-  const statusCode = resp.message.statusCode;
-  if (statusCode !== 204) {
-    const contents = await resp.readBody();
-    throw new Error(`unexpected status code: ${statusCode}\n${contents}`);
-  }
-  return;
 };
 
 interface ReposDeleteReleaseParams {
