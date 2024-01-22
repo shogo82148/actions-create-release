@@ -53,7 +53,7 @@ inputs:
     description: "Whether to automatically generate the name and body for this release."
     required: false
     default: false
-  notes-start-tag:
+  notes_start_tag:
     description: "The start tag for release notes generation."
     required: false
   overwrite:
