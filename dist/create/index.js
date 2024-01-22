@@ -25626,7 +25626,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.create = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const fs = __importStar(__nccwpck_require__(7147));
+const fs = __importStar(__nccwpck_require__(3292));
 const handleGitHubError = (msg, error) => {
     core.error(`${msg}: unexpected status code: ${error.statusCode}, error: ${JSON.stringify(error.error)}`);
     throw new Error(`unexpected status code: ${error.statusCode}`);
@@ -25636,25 +25636,40 @@ async function create(opt) {
     const repository = process.env["GITHUB_REPOSITORY"]?.split("/") || ["", ""];
     const owner = opt.owner || repository[0];
     const repo = opt.repo || repository[1];
-    let name;
+    const target_commitish = opt.commitish || undefined;
+    const discussion_category_name = opt.discussion_category_name || undefined;
+    // generate the release body.
+    let name = opt.release_name || undefined;
     let body;
-    let target_commitish;
-    let discussion_category_name;
-    const generate_release_notes = opt.generate_release_notes;
-    if (opt.release_name !== "") {
-        name = opt.release_name;
+    let generate_release_notes = false;
+    if (opt.body_path) {
+        body = await fs.readFile(opt.body_path, "utf8");
     }
-    if (opt.body_path !== "") {
-        body = await readFile(opt.body_path);
+    if (opt.body) {
+        body ??= opt.body;
     }
-    if (!body && opt.body !== "") {
-        body = opt.body;
-    }
-    if (opt.commitish !== "") {
-        target_commitish = opt.commitish;
-    }
-    if (opt.discussion_category_name !== "") {
-        discussion_category_name = opt.discussion_category_name;
+    if (opt.generate_release_notes) {
+        if (opt.notes_start_tag) {
+            const resp = await opt.client.generateReleaseNotes({
+                owner,
+                repo,
+                tag_name: opt.tag_name,
+                target_commitish: target_commitish,
+                previous_tag_name: opt.notes_start_tag,
+            });
+            if (resp.isFailure()) {
+                if (resp.value.statusCode !== 404) {
+                    return handleGitHubError("failed to generate release notes", resp.value);
+                }
+            }
+            else {
+                body = body ? `${body}\n${resp.value.body}` : resp.value.body;
+                name ||= resp.value.name;
+            }
+        }
+        else {
+            generate_release_notes = true;
+        }
     }
     if (opt.overwrite) {
         // delete the release if it already exists.
@@ -25715,17 +25730,6 @@ async function create(opt) {
     };
 }
 exports.create = create;
-// a wrapper for fs.readFile
-async function readFile(path) {
-    return new Promise((resolve, reject) => {
-        fs.readFile(path, { encoding: "utf8" }, (err, data) => {
-            if (err) {
-                reject(err);
-            }
-            resolve(data);
-        });
-    });
-}
 
 
 /***/ }),
@@ -25777,7 +25781,7 @@ async function run() {
         const owner = core.getInput("owner");
         const repo = core.getInput("repo");
         const generate_release_notes = core.getBooleanInput("generate_release_notes");
-        // const discussion_category_name = core.getInput('discussion_category_name')
+        const notes_start_tag = core.getInput("notes_start_tag");
         const overwrite = core.getBooleanInput("overwrite");
         if (tag_name === "") {
             const ref = process.env["GITHUB_REF"] || "";
@@ -25797,6 +25801,7 @@ async function run() {
             owner,
             repo,
             generate_release_notes,
+            notes_start_tag,
             overwrite,
             // Always create release as draft first.
             // It is to prevent users from seeing empty release.
@@ -25955,6 +25960,23 @@ class Client {
         }
         return new Success(undefined);
     }
+    // minimum implementation of generating release notes API
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#generate-release-notes-content-for-a-release
+    async generateReleaseNotes(params) {
+        const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/generate-notes`;
+        const body = {
+            tag_name: params.tag_name,
+            target_commitish: params.target_commitish,
+            previous_tag_name: params.previous_tag_name,
+            configuration_file_path: params.configuration_file_path,
+        };
+        const resp = await this.httpClient.postJson(url, body);
+        const statusCode = resp.statusCode;
+        if (statusCode !== http.HttpCodes.OK) {
+            return new Failure(new GitHubError(statusCode, resp.result));
+        }
+        return new Success(resp.result);
+    }
     // minimum implementation of deleting a tag API
     // https://docs.github.com/en/rest/git/refs?apiVersion=2022-11-28#delete-a-reference
     async deleteTag(params) {
@@ -26034,6 +26056,14 @@ module.exports = require("events");
 
 "use strict";
 module.exports = require("fs");
+
+/***/ }),
+
+/***/ 3292:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs/promises");
 
 /***/ }),
 

@@ -25724,6 +25724,23 @@ class Client {
         }
         return new Success(undefined);
     }
+    // minimum implementation of generating release notes API
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#generate-release-notes-content-for-a-release
+    async generateReleaseNotes(params) {
+        const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/generate-notes`;
+        const body = {
+            tag_name: params.tag_name,
+            target_commitish: params.target_commitish,
+            previous_tag_name: params.previous_tag_name,
+            configuration_file_path: params.configuration_file_path,
+        };
+        const resp = await this.httpClient.postJson(url, body);
+        const statusCode = resp.statusCode;
+        if (statusCode !== http.HttpCodes.OK) {
+            return new Failure(new GitHubError(statusCode, resp.result));
+        }
+        return new Success(resp.result);
+    }
     // minimum implementation of deleting a tag API
     // https://docs.github.com/en/rest/git/refs?apiVersion=2022-11-28#delete-a-reference
     async deleteTag(params) {
