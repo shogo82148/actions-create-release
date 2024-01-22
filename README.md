@@ -88,7 +88,7 @@ otherwise, a name will be automatically generated. If `body` or `body_path` is s
 the body will be pre-pended to the automatically generated notes.
 For more information, see "[Automatically generated release notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes)".
 
-### notes-start-tag
+### notes_start_tag
 
 The start tag for release notes generation.
 

@@ -106,7 +106,7 @@ jobs:
           # generate release notes only on push events
           # because GitHub fails to generate the notes on merged commits.
           generate_release_notes: ${{ github.event_name == 'push' }}
-          notes-start-tag: v1
+          notes_start_tag: v1
           overwrite: true
 
   cleanup:
