@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import * as fs from "fs";
+import * as fs from "fs/promises";
 import * as github from "./github-mini";
 
 // Options is the options for create function.
@@ -16,6 +16,7 @@ interface Options {
   owner: string;
   repo: string;
   discussion_category_name: string;
+  notes_start_tag: string;
   generate_release_notes: boolean;
   overwrite: boolean;
 }
@@ -39,26 +40,39 @@ export async function create(opt: Options): Promise<Result> {
   const repository = process.env["GITHUB_REPOSITORY"]?.split("/") || ["", ""];
   const owner = opt.owner || repository[0];
   const repo = opt.repo || repository[1];
-  let name: string | undefined;
-  let body: string | undefined;
-  let target_commitish: string | undefined;
-  let discussion_category_name: string | undefined;
-  const generate_release_notes = opt.generate_release_notes;
+  const target_commitish = opt.commitish || undefined;
+  const discussion_category_name = opt.discussion_category_name || undefined;
 
-  if (opt.release_name !== "") {
-    name = opt.release_name;
+  // generate the release body.
+  let name = opt.release_name || undefined;
+  let body: string | undefined;
+  let generate_release_notes = false;
+  if (opt.body_path) {
+    body = await fs.readFile(opt.body_path, "utf8");
   }
-  if (opt.body_path !== "") {
-    body = await readFile(opt.body_path);
+  if (opt.body) {
+    body ??= opt.body;
   }
-  if (!body && opt.body !== "") {
-    body = opt.body;
-  }
-  if (opt.commitish !== "") {
-    target_commitish = opt.commitish;
-  }
-  if (opt.discussion_category_name !== "") {
-    discussion_category_name = opt.discussion_category_name;
+  if (opt.generate_release_notes) {
+    if (opt.notes_start_tag) {
+      const resp = await opt.client.generateReleaseNotes({
+        owner,
+        repo,
+        tag_name: opt.tag_name,
+        target_commitish: target_commitish,
+        previous_tag_name: opt.notes_start_tag,
+      });
+      if (resp.isFailure()) {
+        if (resp.value.statusCode !== 404) {
+          return handleGitHubError("failed to generate release notes", resp.value);
+        }
+      } else {
+        body = body ? `${body}\n${resp.value.body}` : resp.value.body;
+        name ||= resp.value.name;
+      }
+    } else {
+      generate_release_notes = true;
+    }
   }
 
   if (opt.overwrite) {
@@ -120,16 +134,4 @@ export async function create(opt: Options): Promise<Result> {
     html_url: release.html_url,
     upload_url: release.upload_url,
   };
-}
-
-// a wrapper for fs.readFile
-async function readFile(path: string): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    fs.readFile(path, { encoding: "utf8" }, (err, data) => {
-      if (err) {
-        reject(err);
-      }
-      resolve(data);
-    });
-  });
 }
