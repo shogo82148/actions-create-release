@@ -21,7 +21,7 @@ async function run(): Promise<void> {
     const owner = core.getInput("owner");
     const repo = core.getInput("repo");
     const generate_release_notes = core.getBooleanInput("generate_release_notes");
-    // const discussion_category_name = core.getInput('discussion_category_name')
+    const notes_start_tag = core.getInput("notes_start_tag");
     const overwrite = core.getBooleanInput("overwrite");
 
     if (tag_name === "") {
@@ -42,6 +42,7 @@ async function run(): Promise<void> {
       owner,
       repo,
       generate_release_notes,
+      notes_start_tag,
       overwrite,
 
       // Always create release as draft first.

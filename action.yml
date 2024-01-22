@@ -53,6 +53,9 @@ inputs:
     description: "Whether to automatically generate the name and body for this release."
     required: false
     default: false
+  notes_start_tag:
+    description: "The start tag for release notes generation."
+    required: false
   overwrite:
     description: "Whether to overwrite the release if it already exists."
     required: false
