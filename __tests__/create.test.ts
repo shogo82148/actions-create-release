@@ -42,6 +42,7 @@ test("create a new release", async () => {
     repo: "github-action-test",
     discussion_category_name: "",
     generate_release_notes: false,
+    notes_start_tag: "",
     overwrite: false,
   });
   expect(createRelease).toHaveBeenCalled();
@@ -124,6 +125,7 @@ test("overwrite the existing release", async () => {
     repo: "github-action-test",
     discussion_category_name: "",
     generate_release_notes: false,
+    notes_start_tag: "",
     overwrite: true,
   });
   expect(getReleaseByTagName).toHaveBeenCalled();
@@ -220,6 +222,7 @@ test("overwrite the existing release and tag", async () => {
     repo: "github-action-test",
     discussion_category_name: "",
     generate_release_notes: false,
+    notes_start_tag: "",
     overwrite: true,
   });
   expect(getReleaseByTagName).toHaveBeenCalled();
@@ -292,6 +295,7 @@ test("overwrite not-existing release", async () => {
     repo: "github-action-test",
     discussion_category_name: "",
     generate_release_notes: false,
+    notes_start_tag: "",
     overwrite: true,
   });
   expect(getReleaseByTagName).toHaveBeenCalled();
