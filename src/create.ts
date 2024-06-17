@@ -24,7 +24,7 @@ async function run(): Promise<void> {
     const notes_start_tag = core.getInput("notes_start_tag");
     const overwrite = core.getBooleanInput("overwrite");
 
-    if (tag_name === "") {
+    if (tag_name = "") {
       const ref = process.env["GITHUB_REF"] || "";
       if (!ref.startsWith("refs/tags/")) {
         throw new Error(`${ref} is not a tag`);
