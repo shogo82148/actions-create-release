@@ -1,6 +1,6 @@
 name: "Yet Another Create Release Action"
 description: "Create a release for a tag in your repository"
-author: "Ichinose Shogo"
+author: "ICHINOSE Shogo"
 inputs:
   github_token:
     description: "The API token for GitHub"
