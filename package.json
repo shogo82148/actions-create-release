@@ -8,13 +8,13 @@
     "node": "^24.0.0"
   },
   "scripts": {
-    "build": "tsc",
-    "format": "prettier --write **/*.ts",
-    "format-check": "prettier --check **/*.ts",
-    "lint": "eslint src/**/*.ts",
-    "package": "npx rollup --config rollup.config.mjs",
+    "bundle": "npm run format:write && npm run package",
+    "format:write": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "npx eslint .",
+    "package": "npx rimraf ./dist && npx rollup --config rollup.config.mjs",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
+    "all": "npm run format:write && npm run lint && npm run package && npm test"
   },
   "repository": {
     "type": "git",
@@ -29,7 +29,8 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@actions/http-client": "^3.0.0"
+    "@actions/http-client": "^3.0.0",
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
@@ -45,7 +46,6 @@
     "prettier": "3.8.1",
     "rollup": "^4.59.0",
     "ts-jest": "^29.4.6",
-    "tslib": "^2.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.50.1"
   }
