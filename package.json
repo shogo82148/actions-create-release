@@ -2,8 +2,8 @@
   "name": "actions-create-release",
   "version": "1.7.6",
   "private": true,
+  "type": "module",
   "description": "Create a release for a tag in your repository",
-  "main": "lib/index.js",
   "engines": {
     "node": "^24.0.0"
   },
@@ -12,8 +12,8 @@
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint src/**/*.ts",
-    "package": "ncc build -o dist/create --source-map --license licenses.txt src/create.ts && ncc build -o dist/publish --source-map --license licenses.txt src/publish.ts",
-    "test": "jest",
+    "package": "npx rollup --config rollup.config.mjs",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
   },
   "repository": {
@@ -33,15 +33,19 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
+    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.11.0",
-    "@vercel/ncc": "^0.38.4",
     "eslint": "^9.39.1",
     "jest": "^30.2.0",
     "js-yaml": "^4.1.1",
     "prettier": "3.8.1",
+    "rollup": "^4.59.0",
     "ts-jest": "^29.4.6",
+    "tslib": "^2.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.50.1"
   }

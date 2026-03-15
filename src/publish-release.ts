@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import * as github from "./github-mini";
+import * as github from "./github-mini.js";
 
 const handleGitHubError = (msg: string, error: github.GitHubError): never => {
   core.error(
