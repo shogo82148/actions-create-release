@@ -28997,12 +28997,12 @@ class Client {
             headers: {
                 Authorization: `Bearer ${token}`,
                 Accept: "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28",
+                "X-GitHub-Api-Version": "2026-03-10",
             },
         });
     }
     // minium implementation of get a release by tag name API
-    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-a-release-by-tag-name
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2026-03-10#get-a-release-by-tag-name
     async getReleaseByTagName(params) {
         const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/tags/${params.tag}`;
         const resp = await this.httpClient.getJson(url);
@@ -29012,7 +29012,7 @@ class Client {
         return new Success(resp.result);
     }
     // minium implementation of create a release API
-    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#create-a-release
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2026-03-10#create-a-release
     async createRelease(params) {
         const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases`;
         const resp = await this.httpClient.postJson(url, params);
@@ -29022,7 +29022,7 @@ class Client {
         return new Success(resp.result);
     }
     // minium implementation of update a release API
-    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#update-a-release
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2026-03-10#update-a-release
     async updateRelease(params) {
         const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
         const body = {
@@ -29037,7 +29037,7 @@ class Client {
         return new Success(resp.result);
     }
     // minimum implementation of deleting a release API
-    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#delete-a-release
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2026-03-10#delete-a-release
     async deleteRelease(params) {
         const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/${params.id}`;
         const resp = await this.httpClient.request("DELETE", url, "", {});
@@ -29049,7 +29049,7 @@ class Client {
         return new Success(undefined);
     }
     // minimum implementation of generating release notes API
-    // https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#generate-release-notes-content-for-a-release
+    // https://docs.github.com/en/rest/releases/releases?apiVersion=2026-03-10#generate-release-notes-content-for-a-release
     async generateReleaseNotes(params) {
         const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/releases/generate-notes`;
         const body = {
@@ -29066,7 +29066,7 @@ class Client {
         return new Success(resp.result);
     }
     // minimum implementation of deleting a tag API
-    // https://docs.github.com/en/rest/git/refs?apiVersion=2022-11-28#delete-a-reference
+    // https://docs.github.com/en/rest/git/refs?apiVersion=2026-03-10#delete-a-reference
     async deleteTag(params) {
         const url = `${this.apiUrl}/repos/${params.owner}/${params.repo}/git/refs/tags/${params.tag}`;
         const resp = await this.httpClient.request("DELETE", url, "", {});
