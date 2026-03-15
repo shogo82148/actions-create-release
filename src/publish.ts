@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
-import * as release from "./publish-release";
-import * as github from "./github-mini";
+import * as release from "./publish-release.js";
+import * as github from "./github-mini.js";
 
 async function run(): Promise<void> {
   try {

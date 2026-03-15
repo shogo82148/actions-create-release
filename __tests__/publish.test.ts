@@ -1,5 +1,6 @@
-import * as release from "../src/publish-release";
-import * as github from "../src/github-mini";
+import { jest } from "@jest/globals";
+import * as release from "../src/publish-release.js";
+import * as github from "../src/github-mini.js";
 
 test("publish a new release", async () => {
   const updateRelease = jest

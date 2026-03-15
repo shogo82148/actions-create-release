@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import * as fs from "fs/promises";
-import * as github from "./github-mini";
+import * as github from "./github-mini.js";
 
 // Options is the options for create function.
 interface Options {
