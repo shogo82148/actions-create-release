@@ -91,9 +91,9 @@ jobs:
     steps:
       - name: cleanup
         run: |
-          gh api -X DELETE /repos/${{ github.repository }}/releases/${{ needs.integrated.outputs.id }} ||:
-          gh api -X DELETE /repos/${{ github.repository }}/releases/${{ needs.integrated-overwrite.outputs.id }} ||:
-          gh api -X DELETE /repos/${{ github.repository }}/git/refs/tags/test-${{ github.run_id }} ||:
+          gh api -H "X-GitHub-Api-Version: 2026-03-10" -X DELETE /repos/${{ github.repository }}/releases/${{ needs.integrated.outputs.id }} ||:
+          gh api -H "X-GitHub-Api-Version: 2026-03-10" -X DELETE /repos/${{ github.repository }}/releases/${{ needs.integrated-overwrite.outputs.id }} ||:
+          gh api -H "X-GitHub-Api-Version: 2026-03-10" -X DELETE /repos/${{ github.repository }}/git/refs/tags/test-${{ github.run_id }} ||:
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
