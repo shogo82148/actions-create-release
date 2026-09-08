@@ -40,7 +40,7 @@
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.13.0",
-    "eslint": "^10.9.1",
+    "eslint": "^10.10.0",
     "jest": "^30.5.1",
     "js-yaml": "^5.4.1",
     "prettier": "3.9.6",
