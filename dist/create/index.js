@@ -29502,7 +29502,7 @@ async function create(opt) {
             if (deleteResult.isFailure()) {
                 return handleGitHubError("failed to delete the existing release", deleteResult.value);
             }
-            if (target_commitish) {
+            if (target_commitish && target_commitish !== release.target_commitish) {
                 warning(`delete the existing tag: ${release.tag_name}, ${release.target_commitish}`);
                 const resp = await opt.client.deleteTag({
                     owner,

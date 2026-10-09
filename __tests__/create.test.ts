@@ -98,7 +98,7 @@ test("overwrite the existing release", async () => {
           tag_name: "v1.0.0",
           name: undefined,
           body: undefined,
-          target_commitish: undefined,
+          target_commitish: "deadbeef",
           draft: false,
           prerelease: false,
           discussion_category_name: undefined,
@@ -121,7 +121,7 @@ test("overwrite the existing release", async () => {
     body_path: "",
     draft: false,
     prerelease: false,
-    commitish: "",
+    commitish: "deadbeef",
     owner: "shogo82148",
     repo: "github-action-test",
     discussion_category_name: "",
@@ -153,7 +153,7 @@ test("overwrite the existing release and tag", async () => {
         return new github.Success({
           id: 123,
           tag_name: "v1.0.0",
-          target_commitish: "deadbeef",
+          target_commitish: "releases/v1",
         });
       },
     );
