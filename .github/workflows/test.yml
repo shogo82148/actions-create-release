@@ -7,8 +7,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version-file: ".node-version"
           cache: npm
@@ -26,7 +26,7 @@ jobs:
       permission: ${{ steps.check.outputs.permission }}
     steps:
       - id: check
-        uses: shogo82148/actions-check-permissions@b7c32c43a066d5752565f554c15c9ac4d6d63e3b # v1.0.4
+        uses: shogo82148/actions-check-permissions@v1.0.4
 
   integrated:
     name: integrated test
@@ -37,7 +37,7 @@ jobs:
     outputs:
       id: ${{ steps.create_release.outputs.id }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
       - name: Create Release
         id: create_release
         uses: ./
@@ -63,7 +63,7 @@ jobs:
     outputs:
       id: ${{ steps.create_release.outputs.id }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
       - name: Overwrite Release
         id: create_release
         uses: ./
